@@ -1,25 +1,63 @@
 import { useState } from "react";
 import {  Loader2 } from "lucide-react";
+import { apiPost } from "../services/api";
+import { useNavigate } from "react-router-dom";
+import { useEvaluation } from "../context/EvaluationContext";
+
+// interface EvaluateRequest{
+//   question:string,
+//   response:string,
+//   reference_answer:string
+// }
+
+interface EvaluationResponse{
+  overall_score: number;
+    grammar: number;
+    similarity: number;
+    reasoning: number;
+    feedback: string[];
+}
 
 export const Evaluate = () => {
+  // local statemanagement ( using hooks)
   const [prompt, setPrompt] = useState("");
   const [referenceText, setReferenceText] = useState("");
   const [isEvaluating, setIsEvaluating] = useState(false);
-
+  // ContextAPI for statemanagement 
+  const { addEvaluation } = useEvaluation();
+  
+    const navigate=useNavigate();
   const isDisabled = !prompt.trim() || isEvaluating;
 
   const handleEvaluate = async () => {
+
     if (isDisabled) return;
     setIsEvaluating(true);
+
     try {
-      // Replace with your actual evaluation call.
+      // Backend API Call that sends payload and gets EvaluationResponse
+       const res = await apiPost<EvaluationResponse>("/api/v1/evaluations/",{
+          question:prompt,
+          response:"AI sample Mock response",
+          reference_answer:referenceText,
+       });
+       console.log("Response :",res);
+   // Now the response will be added to global state - so that history can also be maintained
+       addEvaluation(res);
+   // Route to the dashboard analytics page
+        navigate("/evaluate");
       await new Promise((resolve) => setTimeout(resolve, 1200));
-    } finally {
+    }catch(e:any){
+      window.alert("Error occured please try again");
+       console.log(e.message);
+    }
+     finally {
       setIsEvaluating(false);
     }
   };
 
   return (
+    <>
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold tracking-tight text-slate-100 sm:text-3xl">
@@ -92,5 +130,6 @@ export const Evaluate = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
