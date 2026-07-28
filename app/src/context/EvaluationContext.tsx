@@ -1,61 +1,141 @@
 // src/context/EvaluationContext.tsx
 
-import { createContext, useContext, useState ,type ReactNode} from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  type ReactNode,
+} from "react";
+
+/* ================================
+   Backend Response Interfaces
+================================ */
+
+export interface RelevanceResult {
+  score: number;
+  label: string;
+  confidence: number;
+  reason: string;
+}
+
+export interface AccuracyResult {
+  score: number;
+  confidence: number;
+  supporting_evidence: string[];
+  reason: string;
+}
+
+export interface HallucinatedClaim {
+  claim: string;
+  reason: string;
+}
+
+export interface SupportedClaim {
+  claim: string;
+}
+
+export interface HallucinationResult {
+  score: number;
+  confidence: number;
+  hallucinated_claims: HallucinatedClaim[];
+  supported_claims: SupportedClaim[];
+  reason: string;
+}
 
 export interface EvaluationResult {
-  overall_score: number;
-  grammar: number;
-  similarity: number;
-  reasoning: number;
-  feedback: string[];
+  relevance: RelevanceResult;
+  accuracy: AccuracyResult;
+  hallucination: HallucinationResult;
 }
+
+/* ================================
+   Evaluation Record
+================================ */
+
+export interface EvaluationRecord {
+  id: string;
+
+  question: string;
+
+  response: string;
+
+  evaluatedAt: string;
+
+  result: EvaluationResult;
+}
+
+/* ================================
+   Context
+================================ */
 
 interface EvaluationContextType {
-  evaluations: EvaluationResult[];
-  addEvaluation: (evaluation: EvaluationResult) => void;
+  evaluations: EvaluationRecord[];
+
+  addEvaluation: (record: EvaluationRecord) => void;
+
+  clearEvaluations: () => void;
 }
 
-const EvaluationContext = createContext<EvaluationContextType | undefined>(
-  undefined
-);
+const EvaluationContext =
+  createContext<EvaluationContextType | undefined>(undefined);
 
-// Evaluation provider function to get more evalutions and store them
+/* ================================
+   Provider
+================================ */
+
 export function EvaluationProvider({
   children,
 }: {
   children: ReactNode;
 }) {
-    
-  const [evaluations, setEvaluations] = useState<EvaluationResult[]>([]);
 
-  const addEvaluation = (evaluation: EvaluationResult) => {
-    setEvaluations((prev) => [evaluation, ...prev]);
+  const [evaluations, setEvaluations] =
+    useState<EvaluationRecord[]>([]);
+
+  const addEvaluation = (record: EvaluationRecord) => {
+
+    setEvaluations((prev) => [record, ...prev]);
+
   };
 
+  const clearEvaluations = () => {
+
+    setEvaluations([]);
+
+  };
 
   return (
+
     <EvaluationContext.Provider
       value={{
         evaluations,
         addEvaluation,
+        clearEvaluations,
       }}
     >
       {children}
     </EvaluationContext.Provider>
+
   );
 
-  
 }
 
-// custom Hook for usage purpose
+/* ================================
+   Custom Hook
+================================ */
+
 export function useEvaluation() {
+
   const context = useContext(EvaluationContext);
 
   if (!context) {
+
     throw new Error(
       "useEvaluation must be used inside EvaluationProvider"
     );
+
   }
 
   return context;
+
 }

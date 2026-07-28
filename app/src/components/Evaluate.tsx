@@ -1,135 +1,518 @@
 import { useState } from "react";
-import {  Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { apiPost } from "../services/api";
-import { useNavigate } from "react-router-dom";
 import { useEvaluation } from "../context/EvaluationContext";
 
-// interface EvaluateRequest{
-//   question:string,
-//   response:string,
-//   reference_answer:string
-// }
+interface RelevanceResult {
+  score: number;
+  label: string;
+  confidence: number;
+  reason: string;
+}
 
-interface EvaluationResponse{
-  overall_score: number;
-    grammar: number;
-    similarity: number;
-    reasoning: number;
-    feedback: string[];
+interface AccuracyResult {
+  score: number;
+  confidence: number;
+  supporting_evidence: string[];
+  reason: string;
+}
+
+interface HallucinatedClaim {
+  claim: string;
+  reason: string;
+}
+
+interface SupportedClaim {
+  claim: string;
+}
+
+interface HallucinationResult {
+  score: number;
+  confidence: number;
+  hallucinated_claims: HallucinatedClaim[];
+  supported_claims: SupportedClaim[];
+  reason: string;
+}
+
+export interface EvaluationResponse {
+  relevance: RelevanceResult;
+  accuracy: AccuracyResult;
+  hallucination: HallucinationResult;
 }
 
 export const Evaluate = () => {
-  // local statemanagement ( using hooks)
-  const [prompt, setPrompt] = useState("");
-  const [referenceText, setReferenceText] = useState("");
+
+  const [question, setQuestion] = useState("");
+
+  const [response, setResponse] = useState("");
+
   const [isEvaluating, setIsEvaluating] = useState(false);
-  // ContextAPI for statemanagement 
+
+  const [result, setResult] =
+    useState<EvaluationResponse | null>(null);
+
   const { addEvaluation } = useEvaluation();
-  
-    const navigate=useNavigate();
-  const isDisabled = !prompt.trim() || isEvaluating;
+
+  const isDisabled =
+    !question.trim() ||
+    !response.trim() ||
+    isEvaluating;
+
+  const calculateOverallScore = (
+    evaluation: EvaluationResponse
+  ) => {
+
+    return (
+      (
+        evaluation.relevance.score +
+        evaluation.accuracy.score +
+        evaluation.hallucination.score
+      ) / 3
+    ).toFixed(2);
+
+  };
 
   const handleEvaluate = async () => {
 
     if (isDisabled) return;
+
     setIsEvaluating(true);
 
     try {
-      // Backend API Call that sends payload and gets EvaluationResponse
-       const res = await apiPost<EvaluationResponse>("/api/v1/evaluations/",{
-          question:prompt,
-          response:"AI sample Mock response",
-          reference_answer:referenceText,
-       });
-       console.log("Response :",res);
-   // Now the response will be added to global state - so that history can also be maintained
-       addEvaluation(res);
-   // Route to the dashboard analytics page
-        navigate("/evaluate");
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-    }catch(e:any){
-      window.alert("Error occured please try again");
-       console.log(e.message);
-    }
-     finally {
+
+      const evaluation =
+        await apiPost<EvaluationResponse>(
+          "/api/v1/evaluations",
+          {
+            question,
+            response,
+          }
+        );
+
+      setResult(evaluation);
+
+      addEvaluation({
+        id: crypto.randomUUID(),
+
+        question,
+
+        response,
+
+        evaluatedAt: new Date().toISOString(),
+
+        result: evaluation,
+      });
+
+    } catch (err) {
+
+      console.error(err);
+
+      alert("Evaluation Failed");
+
+    } finally {
+
       setIsEvaluating(false);
+
     }
+
   };
 
   return (
-    <>
-    <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-100 sm:text-3xl">
-          Evaluate a response
-        </h1>
-        <p className="mt-2 text-sm text-slate-400">
-          Provide the prompt and a reference answer to score an AI response against it.
-        </p>
-      </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm shadow-black/20 sm:p-8">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="prompt"
-              className="text-sm font-medium text-slate-300"
-            >
-              Prompt
-            </label>
-            <textarea
-              id="prompt"
-              rows={3}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder="What was the model asked to do?"
-              className="w-full resize-none rounded-lg border border-slate-800 bg-slate-950/60 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-colors focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50"
-            />
+   <div className="mx-auto max-w-5xl p-8">
+
+<h1 className="text-3xl font-bold text-white mb-2">
+
+AI Response Evaluator
+
+</h1>
+
+<p className="text-slate-400 mb-8">
+
+Evaluate an AI response using RAG powered analysis.
+
+</p>
+
+<div className="rounded-xl bg-slate-900 border border-slate-800 p-6 space-y-6">
+
+<div>
+
+<label className="block mb-2 text-slate-300">
+
+Question
+
+</label>
+
+<textarea
+
+rows={3}
+
+value={question}
+
+onChange={(e)=>setQuestion(e.target.value)}
+
+className="w-full rounded-lg bg-slate-950 border border-slate-700 p-3 text-white"
+
+placeholder="Enter your question..."
+
+/>
+
+</div>
+
+<div>
+
+<label className="block mb-2 text-slate-300">
+
+AI Response
+
+</label>
+
+<textarea
+
+rows={8}
+
+value={response}
+
+onChange={(e)=>setResponse(e.target.value)}
+
+className="w-full rounded-lg bg-slate-950 border border-slate-700 p-3 text-white"
+
+placeholder="Paste AI response..."
+
+/>
+
+</div>
+
+<button
+
+disabled={isDisabled}
+
+onClick={handleEvaluate}
+
+className="flex items-center gap-2 rounded-lg bg-violet-600 px-5 py-3 disabled:opacity-50"
+
+>
+
+{isEvaluating ? (
+
+<>
+
+<Loader2 className="animate-spin" size={18}/>
+
+Evaluating...
+
+</>
+
+) : (
+
+"Evaluate"
+
+)}
+
+</button>
+
+      {result && (
+
+        <div className="mt-10 space-y-6">
+
+          <div className="rounded-xl border border-violet-700 bg-slate-900 p-6">
+
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Evaluation Result
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+
+              <div className="rounded-lg bg-slate-800 p-4">
+
+                <p className="text-slate-400 text-sm">
+                  Overall Score
+                </p>
+
+                <h3 className="text-4xl font-bold text-green-400 mt-2">
+                  {calculateOverallScore(result)}
+                </h3>
+
+              </div>
+
+              <div className="rounded-lg bg-slate-800 p-4">
+
+                <p className="text-slate-400 text-sm">
+                  Relevance
+                </p>
+
+                <h3 className="text-4xl font-bold text-blue-400 mt-2">
+                  {result.relevance.score}
+                </h3>
+
+                <p className="text-xs mt-2 text-slate-400">
+                  {result.relevance.label}
+                </p>
+
+              </div>
+
+              <div className="rounded-lg bg-slate-800 p-4">
+
+                <p className="text-slate-400 text-sm">
+                  Accuracy
+                </p>
+
+                <h3 className="text-4xl font-bold text-yellow-400 mt-2">
+                  {result.accuracy.score}
+                </h3>
+
+              </div>
+
+              <div className="rounded-lg bg-slate-800 p-4">
+
+                <p className="text-slate-400 text-sm">
+                  Hallucination
+                </p>
+
+                <h3 className="text-4xl font-bold text-red-400 mt-2">
+                  {result.hallucination.score}
+                </h3>
+
+              </div>
+
+            </div>
+
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="reference-text"
-              className="text-sm font-medium text-slate-300"
-            >
-              Reference text
-            </label>
-            <textarea
-              id="reference-text"
-              rows={5}
-              value={referenceText}
-              onChange={(e) => setReferenceText(e.target.value)}
-              placeholder="Paste the ideal or ground-truth answer to compare against."
-              className="w-full resize-none rounded-lg border border-slate-800 bg-slate-950/60 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-colors focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50"
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
+
+              <h2 className="text-lg font-semibold text-white mb-4">
+                Relevance Analysis
+              </h2>
+
+              <p>
+
+                <span className="font-semibold">
+                  Confidence:
+                </span>
+
+                {" "}
+                {result.relevance.confidence}
+
+              </p>
+
+              <p className="mt-3 text-slate-300">
+
+                {result.relevance.reason}
+
+              </p>
+
+            </div>
+
+            <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
+
+              <h2 className="text-lg font-semibold text-white mb-4">
+                Accuracy Analysis
+              </h2>
+
+              <p>
+
+                <span className="font-semibold">
+                  Confidence:
+                </span>
+
+                {" "}
+                {result.accuracy.confidence}
+
+              </p>
+
+              <p className="mt-3 text-slate-300">
+
+                {result.accuracy.reason}
+
+              </p>
+
+            </div>
+
           </div>
 
-          <div className="flex items-center justify-between border-t border-slate-800 pt-5">
-            <p className="text-xs text-slate-500">
-              Both fields are required to run an evaluation.
+          <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
+
+            <h2 className="text-xl font-semibold mb-4 text-white">
+
+              Supporting Evidence
+
+            </h2>
+
+            {
+
+              result.accuracy.supporting_evidence.length === 0 ?
+
+              (
+
+                <p className="text-slate-500">
+
+                  No supporting evidence available.
+
+                </p>
+
+              )
+
+              :
+
+              (
+
+                <ul className="list-disc ml-6 space-y-2">
+
+                  {
+
+                    result.accuracy.supporting_evidence.map(
+
+                      (item,index)=>(
+
+                        <li key={index}>
+
+                          {item}
+
+                        </li>
+
+                      )
+
+                    )
+
+                  }
+
+                </ul>
+
+              )
+
+            }
+
+          </div>
+
+          <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
+
+            <h2 className="text-xl font-semibold mb-4 text-white">
+
+              Hallucination Analysis
+
+            </h2>
+
+            <p className="mb-5 text-slate-300">
+
+              {result.hallucination.reason}
+
             </p>
-            <button
-              type="button"
-              onClick={handleEvaluate}
-              disabled={isDisabled}
-              className="flex items-center gap-2 rounded-lg bg-linear-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm shadow-violet-950/40 transition-all hover:from-violet-500 hover:to-indigo-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:from-violet-600 disabled:hover:to-indigo-600"
-            >
-              {isEvaluating ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Evaluating
-                </>
-              ) : (
-                <>
-                  
-                  Evaluate
-                </>
-              )}
-            </button>
+
+            {
+
+              result.hallucination.hallucinated_claims.length===0 ?
+
+              (
+
+                <p className="text-green-400">
+
+                  No hallucinated claims detected.
+
+                </p>
+
+              )
+
+              :
+
+              (
+
+                <div className="space-y-4">
+
+                  {
+
+                    result.hallucination.hallucinated_claims.map(
+
+                      (claim,index)=>(
+
+                        <div
+
+                          key={index}
+
+                          className="rounded-lg border border-red-700 bg-red-900/20 p-4"
+
+                        >
+
+                          <p className="font-semibold text-red-300">
+
+                            {claim.claim}
+
+                          </p>
+
+                          <p className="text-sm text-slate-300 mt-2">
+
+                            {claim.reason}
+
+                          </p>
+
+                        </div>
+
+                      )
+
+                    )
+
+                  }
+
+                </div>
+
+              )
+
+            }
+
           </div>
+
+          {
+
+            result.hallucination.supported_claims.length>0 &&
+
+            (
+
+              <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
+
+                <h2 className="text-xl font-semibold mb-4 text-white">
+
+                  Supported Claims
+
+                </h2>
+
+                <ul className="list-disc ml-6 space-y-2">
+
+                  {
+
+                    result.hallucination.supported_claims.map(
+
+                      (claim,index)=>(
+
+                        <li key={index}>
+
+                          {claim.claim}
+
+                        </li>
+
+                      )
+
+                    )
+
+                  }
+
+                </ul>
+
+              </div>
+
+            )
+
+          }
+
         </div>
-      </div>
+
+      )}
+
     </div>
-    </>
-  );
+
+  </div>
+
+);
+
 };

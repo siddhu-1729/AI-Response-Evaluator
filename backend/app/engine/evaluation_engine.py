@@ -60,7 +60,7 @@
 #             hallucination=hallucination
 #         )
 
-# previous code has multiple api calls - makes 3 gemini api calls for each sample.
+# previous code has multiple api calls - makes 3 gemini api calls for each sample Now it is optimised to make just 1 call for three agents.
 from app.evaluation.agents.combined_judge_agent import CombinedJudgeAgent
 
 
@@ -73,7 +73,7 @@ class EvaluationEngine:
         self,
         question: str,
         response: str,
-        evidence: str
+        evidence: str="temporary evidence"
     ):
 
         return self.judge.evaluate(

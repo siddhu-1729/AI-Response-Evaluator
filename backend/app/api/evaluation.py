@@ -18,11 +18,12 @@ from app.schemas.evaluations import (
 )
 
 from app.engine.evaluation_engine import EvaluationEngine
+from app.evaluation.models.combined_result import CombinedEvaluationResult
 
 engine = EvaluationEngine()
 
 
-@router.post("/", response_model=EvaluationResponse)
+@router.post("/", response_model=CombinedEvaluationResult)
 def evaluate(request: EvaluationRequest):
-
-    return engine.evaluate(request)
+    print("Request received from client:",request)
+    return engine.evaluate(request.question,request.response)

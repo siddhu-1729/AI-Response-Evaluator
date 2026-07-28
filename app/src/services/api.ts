@@ -1,4 +1,5 @@
 // src/services/api.ts
+// Not usiing this right now 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 export async function apiGet<T>(endpoint: string): Promise<T> {
