@@ -41,11 +41,20 @@ export interface HallucinationResult {
   supported_claims: SupportedClaim[];
   reason: string;
 }
+export interface CompletenessResult{
+   score:number;
+   confidence:number;
+   covered_aspects:string[];
+   missing_aspects:string[];
+   reason:string;
+}
 
 export interface EvaluationResult {
   relevance: RelevanceResult;
   accuracy: AccuracyResult;
   hallucination: HallucinationResult;
+  completeness:CompletenessResult;
+  
 }
 
 /* ================================
@@ -120,7 +129,7 @@ export function EvaluationProvider({
 
 }
 
-/* ================================
+/* =============================
    Custom Hook
 ================================ */
 

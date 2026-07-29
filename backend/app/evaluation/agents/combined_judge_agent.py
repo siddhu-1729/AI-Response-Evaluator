@@ -18,16 +18,16 @@ class CombinedJudgeAgent:
         )
 
     def _build_prompt(
-        self,
-        question: str,
-        response: str,
-        evidence: str
-    ) -> str:
+    self,
+    question: str,
+    response: str,
+    evidence: str
+) -> str:
 
-        return f"""
+     return f"""
 You are an expert AI Response Evaluator.
 
-Your task is to independently evaluate an AI-generated response using THREE metrics.
+Your task is to independently evaluate an AI-generated response using FOUR metrics.
 
 ==========================================================
 QUESTION
@@ -56,6 +56,7 @@ Evaluate the response independently for:
 1. RELEVANCE
 2. ACCURACY
 3. HALLUCINATION
+4. COMPLETENESS
 
 Do NOT let one metric influence another.
 
@@ -112,6 +113,36 @@ Hallucination score meaning:
 
 0 = severe hallucination
 
+----------------------------------------------------------
+COMPLETENESS
+----------------------------------------------------------
+
+Evaluate whether the AI response completely answers the user's question using ONLY the provided reference evidence.
+
+Determine:
+
+- Which important aspects of the expected answer are covered.
+- Which important aspects are missing.
+- Ignore grammar.
+- Ignore writing style.
+- Ignore hallucinations.
+- Ignore factual correctness unless it affects completeness.
+
+Return
+
+- score (0-10)
+- confidence (0-1)
+- covered_aspects (list)
+- missing_aspects (list)
+- reason
+
+Metric Guidelines
+
+- Relevance: Did the response address the user's question?
+- Accuracy: Is the information supported by the reference evidence?
+- Hallucination: Did the response introduce unsupported factual claims?
+- Completeness: Did the response cover all major aspects expected from the reference evidence?
+
 ==========================================================
 OUTPUT FORMAT
 ==========================================================
@@ -145,6 +176,13 @@ Return ONLY valid JSON.
                 "claim": ""
             }}
         ],
+        "reason": ""
+    }},
+    "completeness": {{
+        "score": 0,
+        "confidence": 0,
+        "covered_aspects": [],
+        "missing_aspects": [],
         "reason": ""
     }}
 }}

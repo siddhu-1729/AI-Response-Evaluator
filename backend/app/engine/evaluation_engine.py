@@ -73,7 +73,7 @@ class EvaluationEngine:
         self,
         question: str,
         response: str,
-        evidence: str="temporary evidence"
+        evidence: str,
     ):
 
         return self.judge.evaluate(

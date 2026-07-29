@@ -34,10 +34,19 @@ interface HallucinationResult {
   reason: string;
 }
 
+interface CompletenessResult{
+   score:number;
+   confidence:number;
+   covered_aspects:string[];
+   missing_aspects:string[];
+   reason:string;
+}
+
 export interface EvaluationResponse {
   relevance: RelevanceResult;
   accuracy: AccuracyResult;
   hallucination: HallucinationResult;
+  completeness:CompletenessResult;
 }
 
 export const Evaluate = () => {
@@ -66,8 +75,9 @@ export const Evaluate = () => {
       (
         evaluation.relevance.score +
         evaluation.accuracy.score +
-        evaluation.hallucination.score
-      ) / 3
+        evaluation.hallucination.score+
+        evaluation.completeness.score
+      ) / 4
     ).toFixed(2);
 
   };
@@ -120,96 +130,51 @@ export const Evaluate = () => {
   return (
 
    <div className="mx-auto max-w-5xl p-8">
+      <h1 className="text-3xl font-bold text-white mb-2">
+          AI Response Evaluator
+      </h1>
+      <p className="text-slate-400 mb-8">
+      Evaluate an AI response using RAG powered analysis.
+      </p>
+    <div className="rounded-xl bg-slate-900 border border-slate-800 p-6 space-y-6">
+  <div>
 
-<h1 className="text-3xl font-bold text-white mb-2">
+    <label className="block mb-2 text-slate-300">
+            Question   </label>
+    <textarea rows={3} value={question}  onChange={(e)=>setQuestion(e.target.value)}
 
-AI Response Evaluator
+       className="w-full rounded-lg bg-slate-950 border border-slate-700 p-3 text-white"  placeholder="Enter your question..."/>
 
-</h1>
+      </div>
 
-<p className="text-slate-400 mb-8">
+      <div>
 
-Evaluate an AI response using RAG powered analysis.
+          <label className="block mb-2 text-slate-300">
 
-</p>
+                  AI Response
+          </label>
+      <textarea rows={8} value={response} onChange={(e)=>setResponse(e.target.value)}
 
-<div className="rounded-xl bg-slate-900 border border-slate-800 p-6 space-y-6">
+       className="w-full rounded-lg bg-slate-950 border border-slate-700 p-3 text-white" placeholder="Paste AI response..."/>
 
-<div>
+      </div>
 
-<label className="block mb-2 text-slate-300">
+      <button disabled={isDisabled} onClick={handleEvaluate}
 
-Question
+        className="flex items-center gap-2 rounded-lg bg-violet-600 px-5 py-3 disabled:opacity-50">
 
-</label>
+        {isEvaluating ? (
+              <>
+            <Loader2 className="animate-spin" size={18}/>
 
-<textarea
+        Evaluating...
+                    </>
 
-rows={3}
+          ) : (
 
-value={question}
+            "Evaluate"   )}
 
-onChange={(e)=>setQuestion(e.target.value)}
-
-className="w-full rounded-lg bg-slate-950 border border-slate-700 p-3 text-white"
-
-placeholder="Enter your question..."
-
-/>
-
-</div>
-
-<div>
-
-<label className="block mb-2 text-slate-300">
-
-AI Response
-
-</label>
-
-<textarea
-
-rows={8}
-
-value={response}
-
-onChange={(e)=>setResponse(e.target.value)}
-
-className="w-full rounded-lg bg-slate-950 border border-slate-700 p-3 text-white"
-
-placeholder="Paste AI response..."
-
-/>
-
-</div>
-
-<button
-
-disabled={isDisabled}
-
-onClick={handleEvaluate}
-
-className="flex items-center gap-2 rounded-lg bg-violet-600 px-5 py-3 disabled:opacity-50"
-
->
-
-{isEvaluating ? (
-
-<>
-
-<Loader2 className="animate-spin" size={18}/>
-
-Evaluating...
-
-</>
-
-) : (
-
-"Evaluate"
-
-)}
-
-</button>
+      </button>
 
       {result && (
 
@@ -221,7 +186,7 @@ Evaluating...
               Evaluation Result
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
 
               <div className="rounded-lg bg-slate-800 p-4">
 
@@ -273,6 +238,15 @@ Evaluating...
                   {result.hallucination.score}
                 </h3>
 
+              </div>
+              <div className="rounded-lg bg-slate-800 p-4">
+                 <p className="text-slate-400 text-sm">
+                     Completeness
+                 </p>
+
+               <h3 className="text-4xl font-bold text-emerald-400 mt-2">
+                   {result.completeness.score}
+               </h3>
               </div>
 
             </div>
@@ -331,6 +305,24 @@ Evaluating...
 
             </div>
 
+            <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
+
+                   <h2 className="text-lg font-semibold text-white mb-4">
+                      Completeness Analysis
+                    </h2>
+                  <p>
+                     <span className="font-semibold">
+                            Confidence:
+                       </span>{" "}
+                    {result.completeness.confidence}
+                  </p>
+
+                 <p className="mt-3 text-slate-300">
+                    {result.completeness.reason}
+                    </p>
+
+            </div>
+
           </div>
 
           <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
@@ -386,6 +378,81 @@ Evaluating...
             }
 
           </div>
+
+          <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
+
+    <h2 className="text-xl font-semibold mb-4 text-green-400">
+        Covered Aspects
+    </h2>
+
+    {
+        result.completeness.covered_aspects.length === 0 ?
+
+        (
+            <p className="text-slate-500">
+                No covered aspects identified.
+            </p>
+        )
+
+        :
+
+        (
+            <ul className="list-disc ml-6 space-y-2">
+
+                {
+                    result.completeness.covered_aspects.map(
+                        (item,index)=>(
+
+                            <li key={index}>
+                                {item}
+                            </li>
+
+                        )
+                    )
+                }
+
+            </ul>
+        )
+    }
+
+</div>
+<div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
+
+    <h2 className="text-xl font-semibold mb-4 text-red-400">
+        Missing Aspects
+    </h2>
+
+    {
+        result.completeness.missing_aspects.length === 0 ?
+
+        (
+            <p className="text-green-400">
+                No important aspects are missing.
+            </p>
+        )
+
+        :
+
+        (
+            <ul className="list-disc ml-6 space-y-2">
+
+                {
+                    result.completeness.missing_aspects.map(
+                        (item,index)=>(
+
+                            <li key={index}>
+                                {item}
+                            </li>
+
+                        )
+                    )
+                }
+
+            </ul>
+        )
+    }
+
+</div>
 
           <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
 
