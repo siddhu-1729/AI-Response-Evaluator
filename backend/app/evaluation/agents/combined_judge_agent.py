@@ -4,7 +4,9 @@ import os
 from dotenv import load_dotenv
 from google import genai
 
-from app.evaluation.models.evaluation_result import EvaluationResult
+# from app.evaluation.models.evaluation_result import EvaluationResult
+from app.evaluation.models.combined_result import CombinedEvaluationResult,RelevanceResult,HallucinationResult,AccuracyResult,CompletenessResult
+from app.evaluation.agents.verdict_agent import VerdictAgent
 
 load_dotenv()
 
@@ -16,6 +18,7 @@ class CombinedJudgeAgent:
         self.client = genai.Client(
             api_key=os.getenv("GEMINI_API_KEY")
         )
+        self.verdict_agent=VerdictAgent()
 
     def _build_prompt(
     self,
@@ -193,7 +196,7 @@ Return ONLY valid JSON.
         question: str,
         response: str,
         evidence: str
-    ) -> EvaluationResult:
+    ) -> CombinedEvaluationResult:
 
         prompt = self._build_prompt(
             question,
@@ -223,4 +226,15 @@ Return ONLY valid JSON.
 
         data = json.loads(text)
 
-        return EvaluationResult.model_validate(data)
+        # Compute the verdict score (Overall score of all agents)
+        verdict=self.verdict_agent.generate_verdict(
+            relevance=RelevanceResult(**data["relevance"]),
+            accuracy=AccuracyResult(**data["accuracy"]),
+            hallucination=HallucinationResult(**data["hallucination"]),
+            completeness=CompletenessResult(**data["completeness"])
+            )
+        
+        # Attach the verdict to the data
+        data["verdict"]=verdict.model_dump()
+       # Returning the final result
+        return CombinedEvaluationResult.model_validate(data)

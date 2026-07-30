@@ -49,12 +49,20 @@ export interface CompletenessResult{
    reason:string;
 }
 
+export interface VerdictResult{
+  overall_score:number;
+  verdict:string;
+  strengths:string[];
+  weaknesses:string[];
+  recommendation:string;
+}
+
 export interface EvaluationResult {
   relevance: RelevanceResult;
   accuracy: AccuracyResult;
   hallucination: HallucinationResult;
   completeness:CompletenessResult;
-  
+  verdict:VerdictResult;
 }
 
 /* ================================

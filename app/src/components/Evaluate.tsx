@@ -42,11 +42,20 @@ interface CompletenessResult{
    reason:string;
 }
 
+interface VerdictResult{
+  overall_score:number;
+  verdict:string;
+  strengths:string[];
+  weaknesses:string[];
+  recommendation:string;
+}
+
 export interface EvaluationResponse {
   relevance: RelevanceResult;
   accuracy: AccuracyResult;
   hallucination: HallucinationResult;
   completeness:CompletenessResult;
+  verdict:VerdictResult;
 }
 
 export const Evaluate = () => {
@@ -66,21 +75,22 @@ export const Evaluate = () => {
     !question.trim() ||
     !response.trim() ||
     isEvaluating;
+//  Computed in backend as a verdict
+  // const calculateOverallScore = (
+  //   evaluation: EvaluationResponse
+  // ) => {
 
-  const calculateOverallScore = (
-    evaluation: EvaluationResponse
-  ) => {
+  //   return (
+  //     (
+  //       evaluation.relevance.score +
+  //       evaluation.accuracy.score +
+  //       evaluation.hallucination.score+
+  //       evaluation.completeness.score
+  //   
+  //     ) / 4
+  //   ).toFixed(2);
 
-    return (
-      (
-        evaluation.relevance.score +
-        evaluation.accuracy.score +
-        evaluation.hallucination.score+
-        evaluation.completeness.score
-      ) / 4
-    ).toFixed(2);
-
-  };
+  // };
 
   const handleEvaluate = async () => {
 
@@ -195,7 +205,7 @@ export const Evaluate = () => {
                 </p>
 
                 <h3 className="text-4xl font-bold text-green-400 mt-2">
-                  {calculateOverallScore(result)}
+                  {result.verdict.overall_score}
                 </h3>
 
               </div>
@@ -248,7 +258,15 @@ export const Evaluate = () => {
                    {result.completeness.score}
                </h3>
               </div>
+                 <div className="rounded-lg bg-slate-800 p-4">
+                           <p className="text-slate-400 text-sm">
+                               Verdict
+                            </p>
 
+                   <h3 className="text-2xl font-bold text-violet-400 mt-2">
+                     {result.verdict.verdict}
+                    </h3>
+                  </div>
             </div>
 
           </div>
@@ -571,6 +589,58 @@ export const Evaluate = () => {
             )
 
           }
+
+
+
+          <div className="rounded-xl bg-slate-900 border border-slate-800 p-5">
+
+            <h2 className="text-2xl font-bold text-white mb-6">
+              Final Verdict
+            </h2>
+
+            <div className="space-y-6">
+
+              <div>
+                <p className="text-slate-400 text-sm">Overall Verdict</p>
+                <h3 className="text-3xl font-bold text-violet-400 mt-2">
+                  {result.verdict.verdict}
+                </h3>
+                <p className="text-slate-300 mt-2">
+                  Overall Score:
+                  <span className="font-semibold text-white">
+                    {" "}{result.verdict.overall_score}/10
+                  </span>
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-green-400 mb-2">Strengths</h3>
+                <ul className="list-disc ml-6 space-y-2">
+                  {result.verdict.strengths.map((item,index)=>(
+                    <li key={index}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-red-400 mb-2">Weaknesses</h3>
+                <ul className="list-disc ml-6 space-y-2">
+                  {result.verdict.weaknesses.map((item,index)=>(
+                    <li key={index}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-blue-400 mb-2">Recommendation</h3>
+                <p className="text-slate-300">
+                  {result.verdict.recommendation}
+                </p>
+              </div>
+
+            </div>
+
+          </div>
 
         </div>
 

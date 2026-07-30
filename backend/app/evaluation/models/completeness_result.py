@@ -6,7 +6,7 @@ class CompletenessResult(BaseModel):
 
     score: int
 
-    confidence: int
+    confidence: float
 
     covered_aspects: List[str]
 
