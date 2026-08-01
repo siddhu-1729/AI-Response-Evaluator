@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.api.evaluation import router as evalution_router
+from app.api.batch_evaluation import router as batch_router
 from fastapi.middleware.cors import CORSMiddleware
 
 app=FastAPI(
@@ -15,11 +16,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+# Routing for single evaluation
 app.include_router(
     evalution_router,
     prefix="/api/v1/evaluations",
     tags=["Evaluations"]
+)
+# Routing for batch evaluation
+app.include_router(
+    batch_router,
+    # prefix="/api/v1/batch_evaluation",
+    # tags=["Batch Evaluation"]
 )
 
 @app.get("/test")
