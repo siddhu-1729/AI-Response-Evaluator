@@ -1,6 +1,6 @@
 // import { useState } from 'react'
 import { Navbar } from './components/Navbar'
-import { Evaluate } from './components/Evaluate'
+import { Evaluate } from './pages/Evaluate'
 import './App.css'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { Dashboard } from './components/Dashboard'

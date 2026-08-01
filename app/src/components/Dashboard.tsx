@@ -1,5 +1,13 @@
 import { useMemo } from "react";
+
 import { useEvaluation } from "../context/EvaluationContext";
+
+import HeroSummary from "../pages/HeroSummary";
+import MetricCard from "../pages/MetricCard";
+import AgentAccordion from "../pages/AgentAccordion";
+import EvidencePanel from "../pages/EvidencePanel";
+import HallucinationPanel from "../pages/HallucinationPanel";
+import VerdictCard from "../pages/VerdictCard";
 
 export const Dashboard = () => {
   const { evaluations, clearEvaluations } = useEvaluation();
@@ -15,398 +23,407 @@ export const Dashboard = () => {
       };
     }
 
-    const relevance =
-      evaluations.reduce(
-        (sum, evaluation) => sum + evaluation.result.relevance.score,
-        0
-      ) / evaluations.length;
-
-    const accuracy =
-      evaluations.reduce(
-        (sum, evaluation) => sum + evaluation.result.accuracy.score,
-        0
-      ) / evaluations.length;
-
-    const hallucination =
-      evaluations.reduce(
-        (sum, evaluation) => sum + evaluation.result.hallucination.score,
-        0
-      ) / evaluations.length;
-
-    const completeness =
-      evaluations.reduce(
-        (sum, evaluation) => sum + evaluation.result.completeness.score,
-        0
-      ) / evaluations.length;
-
-    const overall =
-      evaluations.reduce(
-        (sum, evaluation) =>
-          sum + evaluation.result.verdict.overall_score,
-        0
-      ) / evaluations.length;
-
     return {
-      relevance,
-      accuracy,
-      hallucination,
-      completeness,
-      overall,
+      relevance:
+        evaluations.reduce(
+          (sum, item) => sum + item.result.relevance.score,
+          0
+        ) / evaluations.length,
+
+      accuracy:
+        evaluations.reduce(
+          (sum, item) => sum + item.result.accuracy.score,
+          0
+        ) / evaluations.length,
+
+      hallucination:
+        evaluations.reduce(
+          (sum, item) => sum + item.result.hallucination.score,
+          0
+        ) / evaluations.length,
+
+      completeness:
+        evaluations.reduce(
+          (sum, item) => sum + item.result.completeness.score,
+          0
+        ) / evaluations.length,
+
+      overall:
+        evaluations.reduce(
+          (sum, item) =>
+            sum + item.result.verdict.overall_score,
+          0
+        ) / evaluations.length,
     };
   }, [evaluations]);
 
   return (
     <div className="mx-auto max-w-7xl p-8">
-      <div className="mb-8 flex items-center justify-between">
+
+      {/* Header */}
+
+      <div className="mb-10 flex items-center justify-between">
+
         <div>
-          <h1 className="text-3xl font-bold text-white">
+
+          <h1 className="text-4xl font-bold text-white">
             Evaluation Dashboard
           </h1>
 
-          <p className="text-slate-400">
-            Total Evaluations: {evaluations.length}
+          <p className="mt-2 text-slate-400">
+            Total Evaluations : {evaluations.length}
           </p>
+
         </div>
 
         <button
           onClick={clearEvaluations}
-          className="rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700"
+          className="rounded-xl bg-red-600 px-5 py-3 text-white transition hover:bg-red-700"
         >
           Clear History
         </button>
+
       </div>
 
-      <div className="mb-8 grid gap-5 md:grid-cols-5">
-        <Card
-          title="Overall"
-          value={averages.overall.toFixed(2)}
-          color="text-green-400"
+      {/* Overall Analytics */}
+
+      <div className="mb-10">
+
+        <HeroSummary
+          overallScore={averages.overall}
+          verdict="Average Evaluation Quality"
+          confidence={1}
         />
 
-        <Card
+      </div>
+
+      {/* Average Metrics */}
+
+      <div className="mb-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+
+        <MetricCard
           title="Relevance"
-          value={averages.relevance.toFixed(2)}
+          score={averages.relevance}
+          confidence={1}
+          reason="Average relevance score across all evaluations."
           color="text-blue-400"
         />
 
-        <Card
+        <MetricCard
           title="Accuracy"
-          value={averages.accuracy.toFixed(2)}
+          score={averages.accuracy}
+          confidence={1}
+          reason="Average factual accuracy across all evaluations."
           color="text-yellow-400"
         />
 
-        <Card
+        <MetricCard
           title="Hallucination"
-          value={averages.hallucination.toFixed(2)}
+          score={averages.hallucination}
+          confidence={1}
+          reason="Average hallucination score."
           color="text-red-400"
         />
 
-        <Card
+        <MetricCard
           title="Completeness"
-          value={averages.completeness.toFixed(2)}
-          color="text-emerald-400"
+          score={averages.completeness}
+          confidence={1}
+          reason="Average completeness score."
+          color="text-green-400"
         />
+
       </div>
 
       {evaluations.length === 0 ? (
-        <div className="rounded-xl border border-slate-700 bg-slate-900 p-8 text-center text-slate-400">
+
+        <div className="rounded-2xl border border-slate-700 bg-slate-900 p-10 text-center text-slate-400">
+
           No evaluations yet.
+
         </div>
+
       ) : (
-        <div className="space-y-6">
-          {evaluations.map((evaluation) => {
-            const overall =
-              evaluation.result.verdict.overall_score;
 
-            return (
-              <div
-                key={evaluation.id}
-                className="rounded-xl border border-slate-700 bg-slate-900 p-6"
-              >
-                <div className="mb-4 flex justify-between">
-                  <div>
-                    <h2 className="text-xl font-semibold text-white">
-                      Overall Score: {overall.toFixed(2)}
-                    </h2>
+        <div className="space-y-10">
 
-                    <p className="mt-1 text-sm font-semibold text-violet-400">
-                      Verdict: {evaluation.result.verdict.verdict}
-                    </p>
-                  </div>
+          {evaluations.map((evaluation) => (
+            <div
+              key={evaluation.id}
+              className="rounded-3xl border border-slate-700 bg-slate-900 p-8 shadow-lg"
+            >
 
-                  <span className="text-sm text-slate-400">
-                    {new Date(
-                      evaluation.evaluatedAt
-                    ).toLocaleString()}
-                  </span>
-                </div>
+              <HeroSummary
+                overallScore={
+                  evaluation.result.verdict.overall_score
+                }
+                verdict={
+                  evaluation.result.verdict.verdict
+                }
+                confidence={
+                  (
+                    evaluation.result.relevance.confidence +
+                    evaluation.result.accuracy.confidence +
+                    evaluation.result.hallucination.confidence +
+                    evaluation.result.completeness.confidence
+                  ) / 4
+                }
+              />
 
-                <div className="mb-4">
-                  <h3 className="font-semibold text-violet-400">
-                    Question
-                  </h3>
+              <div className="mt-8">
 
-                  <p className="text-slate-300">
-                    {evaluation.question}
-                  </p>
-                </div>
+                <h2 className="text-xl font-semibold text-violet-400">
+                  Question
+                </h2>
 
-                <div className="mb-4">
-                  <h3 className="font-semibold text-violet-400">
-                    AI Response
-                  </h3>
+                <p className="mt-3 text-slate-300">
+                  {evaluation.question}
+                </p>
 
-                  <p className="whitespace-pre-wrap text-slate-300">
-                    {evaluation.response}
-                  </p>
-                </div>
+              </div>
 
-                <div className="mb-6 grid gap-4 md:grid-cols-4">
-                  <Score
-                    title="Relevance"
-                    value={evaluation.result.relevance.score}
-                  />
+              <div className="mt-8">
 
-                  <Score
-                    title="Accuracy"
-                    value={evaluation.result.accuracy.score}
-                  />
+                <h2 className="text-xl font-semibold text-violet-400">
+                  AI Response
+                </h2>
 
-                  <Score
-                    title="Hallucination"
-                    value={evaluation.result.hallucination.score}
-                  />
+                <p className="mt-3 whitespace-pre-wrap text-slate-300">
+                  {evaluation.response}
+                </p>
 
-                  <Score
-                    title="Completeness"
-                    value={evaluation.result.completeness.score}
-                  />
-                </div>
-                                <Section title="Relevance Reason">
+              </div>
+
+              <div className="mt-10 grid gap-6 lg:grid-cols-2">
+                                <MetricCard
+                  title="Relevance"
+                  score={evaluation.result.relevance.score}
+                  confidence={
+                    evaluation.result.relevance.confidence
+                  }
+                  reason={
+                    evaluation.result.relevance.reason
+                  }
+                  color="text-blue-400"
+                />
+
+                <MetricCard
+                  title="Accuracy"
+                  score={evaluation.result.accuracy.score}
+                  confidence={
+                    evaluation.result.accuracy.confidence
+                  }
+                  reason={
+                    evaluation.result.accuracy.reason
+                  }
+                  color="text-yellow-400"
+                />
+
+                <MetricCard
+                  title="Hallucination"
+                  score={
+                    evaluation.result.hallucination.score
+                  }
+                  confidence={
+                    evaluation.result.hallucination.confidence
+                  }
+                  reason={
+                    evaluation.result.hallucination.reason
+                  }
+                  color="text-red-400"
+                />
+
+                <MetricCard
+                  title="Completeness"
+                  score={
+                    evaluation.result.completeness.score
+                  }
+                  confidence={
+                    evaluation.result.completeness.confidence
+                  }
+                  reason={
+                    evaluation.result.completeness.reason
+                  }
+                  color="text-green-400"
+                />
+
+              </div>
+
+              {/* Agent Analysis */}
+
+              <div className="mt-10 space-y-5">
+
+                <AgentAccordion
+                  title="Relevance Agent"
+                >
                   {evaluation.result.relevance.reason}
-                </Section>
+                </AgentAccordion>
 
-                <Section title="Accuracy Reason">
+                <AgentAccordion
+                  title="Accuracy Agent"
+                >
                   {evaluation.result.accuracy.reason}
-                </Section>
+                </AgentAccordion>
 
-                <Section title="Completeness Reason">
-                  {evaluation.result.completeness.reason}
-                </Section>
-
-                <Section title="Hallucination Reason">
+                <AgentAccordion
+                  title="Hallucination Agent"
+                >
                   {evaluation.result.hallucination.reason}
-                </Section>
+                </AgentAccordion>
 
-                {/* Verdict */}
+                <AgentAccordion
+                  title="Completeness Agent"
+                >
+                  {evaluation.result.completeness.reason}
+                </AgentAccordion>
 
-                <div className="mt-6 rounded-xl border border-violet-600 bg-slate-800 p-5">
-                  <h3 className="mb-4 text-xl font-bold text-violet-400">
-                    Final Verdict
-                  </h3>
+              </div>
 
-                  <div className="mb-5 flex items-center justify-between">
-                    <div>
-                      <p className="text-lg font-semibold text-white">
-                        {evaluation.result.verdict.verdict}
-                      </p>
+              {/* Evidence */}
 
-                      <p className="text-slate-400">
-                        Overall Score:{" "}
-                        {evaluation.result.verdict.overall_score.toFixed(2)}
-                        /10
-                      </p>
-                    </div>
-                  </div>
+              <div className="mt-10">
 
-                  {/* Strengths */}
+                <EvidencePanel
+                  evidence={
+                    evaluation.result.accuracy
+                      .supporting_evidence
+                  }
+                />
 
-                  <div className="mb-5">
-                    <h4 className="mb-2 font-semibold text-green-400">
-                      Strengths
-                    </h4>
+              </div>
 
-                    {evaluation.result.verdict.strengths.length === 0 ? (
-                      <p className="text-slate-400">
-                        No strengths detected.
-                      </p>
-                    ) : (
-                      <ul className="list-disc space-y-1 pl-6 text-slate-300">
-                        {evaluation.result.verdict.strengths.map(
-                          (strength, index) => (
-                            <li key={index}>{strength}</li>
-                          )
-                        )}
-                      </ul>
-                    )}
-                  </div>
+              {/* Completeness Details */}
 
-                  {/* Weaknesses */}
+              <div className="mt-10 grid gap-6 lg:grid-cols-2">
 
-                  <div className="mb-5">
-                    <h4 className="mb-2 font-semibold text-red-400">
-                      Weaknesses
-                    </h4>
+                <div className="rounded-2xl border border-green-700 bg-slate-900 p-6">
 
-                    {evaluation.result.verdict.weaknesses.length === 0 ? (
-                      <p className="text-slate-400">
-                        No weaknesses detected.
-                      </p>
-                    ) : (
-                      <ul className="list-disc space-y-1 pl-6 text-slate-300">
-                        {evaluation.result.verdict.weaknesses.map(
-                          (weakness, index) => (
-                            <li key={index}>{weakness}</li>
-                          )
-                        )}
-                      </ul>
-                    )}
-                  </div>
+                  <h2 className="mb-5 text-xl font-bold text-green-400">
+                    Covered Aspects
+                  </h2>
 
-                  {/* Recommendation */}
+                  {evaluation.result.completeness
+                    .covered_aspects.length === 0 ? (
 
-                  <div>
-                    <h4 className="mb-2 font-semibold text-blue-400">
-                      Recommendation
-                    </h4>
-
-                    <p className="text-slate-300">
-                      {evaluation.result.verdict.recommendation}
+                    <p className="text-slate-400">
+                      No covered aspects.
                     </p>
-                  </div>
-                </div>
 
-                {/* Supporting Evidence */}
+                  ) : (
 
-                <div className="mt-6">
-                  <h3 className="mb-2 font-semibold text-white">
-                    Supporting Evidence
-                  </h3>
+                    <ul className="list-disc space-y-2 pl-6 text-slate-300">
 
-                  <ul className="ml-6 list-disc space-y-2">
-                    {evaluation.result.accuracy.supporting_evidence.length ===
-                    0 ? (
-                      <li className="text-slate-400">
-                        No supporting evidence returned.
-                      </li>
-                    ) : (
-                      evaluation.result.accuracy.supporting_evidence.map(
-                        (evidence, index) => (
-                          <li
-                            key={index}
-                            className="text-slate-300"
-                          >
-                            {evidence}
+                      {evaluation.result.completeness.covered_aspects.map(
+                        (aspect, index) => (
+                          <li key={index}>
+                            {aspect}
                           </li>
                         )
-                      )
-                    )}
-                  </ul>
+                      )}
+
+                    </ul>
+
+                  )}
+
                 </div>
 
-                {/* Hallucinated Claims */}
+                <div className="rounded-2xl border border-red-700 bg-slate-900 p-6">
 
-                {evaluation.result.hallucination.hallucinated_claims.length >
-                  0 && (
-                  <div className="mt-6">
-                    <h3 className="mb-3 font-semibold text-red-400">
-                      Hallucinated Claims
-                    </h3>
+                  <h2 className="mb-5 text-xl font-bold text-red-400">
+                    Missing Aspects
+                  </h2>
 
-                    {evaluation.result.hallucination.hallucinated_claims.map(
-                      (claim, index) => (
-                        <div
-                          key={index}
-                          className="mb-3 rounded-lg border border-red-700 bg-slate-800 p-4"
-                        >
-                          <p className="font-semibold text-white">
-                            {claim.claim}
-                          </p>
+                  {evaluation.result.completeness
+                    .missing_aspects.length === 0 ? (
 
-                          <p className="mt-2 text-sm text-slate-400">
-                            {claim.reason}
-                          </p>
-                        </div>
-                      )
-                    )}
-                  </div>
-                )}
+                    <p className="text-green-400">
+                      No missing aspects detected.
+                    </p>
+
+                  ) : (
+
+                    <ul className="list-disc space-y-2 pl-6 text-slate-300">
+
+                      {evaluation.result.completeness.missing_aspects.map(
+                        (aspect, index) => (
+                          <li key={index}>
+                            {aspect}
+                          </li>
+                        )
+                      )}
+
+                    </ul>
+
+                  )}
+
+                </div>
+
               </div>
-            );
-          })}
+                            {/* Hallucination Panel */}
+
+              <div className="mt-10">
+
+                <HallucinationPanel
+                  hallucinatedClaims={
+                    evaluation.result.hallucination
+                      .hallucinated_claims
+                  }
+                  supportedClaims={
+                    evaluation.result.hallucination
+                      .supported_claims
+                  }
+                />
+
+              </div>
+
+              {/* Verdict */}
+
+              <div className="mt-10">
+
+                <VerdictCard
+                  verdict={
+                    evaluation.result.verdict.verdict
+                  }
+                  overallScore={
+                    evaluation.result.verdict
+                      .overall_score
+                  }
+                  strengths={
+                    evaluation.result.verdict
+                      .strengths
+                  }
+                  weaknesses={
+                    evaluation.result.verdict
+                      .weaknesses
+                  }
+                  recommendation={
+                    evaluation.result.verdict
+                      .recommendation
+                  }
+                />
+
+              </div>
+
+              {/* Footer */}
+
+              <div className="mt-10 flex justify-end">
+
+                <p className="text-sm text-slate-500">
+                  Evaluated on{" "}
+                  {new Date(
+                    evaluation.evaluatedAt
+                  ).toLocaleString()}
+                </p>
+
+              </div>
+
+            </div>
+          ))}
+
         </div>
+
       )}
+
     </div>
   );
 };
-function Card({
-  title,
-  value,
-  color,
-}: {
-  title: string;
-  value: string;
-  color: string;
-}) {
-  return (
-    <div className="rounded-xl border border-slate-700 bg-slate-900 p-5 shadow-md">
-      <p className="text-sm text-slate-400">{title}</p>
-
-      <h2 className={`mt-2 text-3xl font-bold ${color}`}>
-        {value}
-      </h2>
-    </div>
-  );
-}
-
-function Score({
-  title,
-  value,
-}: {
-  title: string;
-  value: number;
-}) {
-  let color = "text-red-400";
-
-  if (value >= 9) {
-    color = "text-green-400";
-  } else if (value >= 8) {
-    color = "text-emerald-400";
-  } else if (value >= 7) {
-    color = "text-yellow-400";
-  } else if (value >= 5) {
-    color = "text-orange-400";
-  }
-
-  return (
-    <div className="rounded-lg border border-slate-700 bg-slate-800 p-4">
-      <p className="text-sm text-slate-400">
-        {title}
-      </p>
-
-      <h2 className={`mt-2 text-3xl font-bold ${color}`}>
-        {value.toFixed(1)}
-      </h2>
-    </div>
-  );
-}
-
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="mt-5 rounded-lg border border-slate-700 bg-slate-800 p-4">
-      <h3 className="mb-2 font-semibold text-white">
-        {title}
-      </h3>
-
-      <div className="leading-7 text-slate-300">
-        {children}
-      </div>
-    </div>
-  );
-}
