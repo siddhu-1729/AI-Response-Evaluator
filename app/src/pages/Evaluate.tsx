@@ -4,12 +4,12 @@ import { Loader2 } from "lucide-react";
 import { apiPost } from "../services/api";
 import { useEvaluation } from "../context/EvaluationContext";
 
-import HeroSummary from "../pages/HeroSummary";
-import MetricCard from "../pages/MetricCard";
-import AgentAccordion from "../pages/AgentAccordion";
-import EvidencePanel from "../pages/EvidencePanel";
-import HallucinationPanel from "../pages/HallucinationPanel";
-import VerdictCard from "../pages/VerdictCard";
+import HeroSummary from "../components/HeroSummary";
+import MetricCard from "../components/MetricCard";
+import AgentAccordion from "../components/AgentAccordion";
+import EvidencePanel from "../components/EvidencePanel";
+import HallucinationPanel from "../components/HallucinationPanel";
+import VerdictCard from "../components/VerdictCard";
 
 interface RelevanceResult {
   score: number;

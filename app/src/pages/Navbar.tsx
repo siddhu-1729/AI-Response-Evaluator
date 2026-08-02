@@ -5,8 +5,8 @@ import { Menu, X, Sun, Moon, LogIn } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
-  { label: "Evaluate", href: "/evaluate" },
-//   { label: "Docs", href: "/docs" },
+  { label: "Dashboard", href: "/evaluate" },
+  { label: "Batch Evaluate", href: "/batchevaluate" },
 //   { label: "Pricing", href: "/pricing" },
 ];
 

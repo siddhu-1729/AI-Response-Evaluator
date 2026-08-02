@@ -1,9 +1,10 @@
 // import { useState } from 'react'
-import { Navbar } from './components/Navbar'
+import { Navbar } from './pages/Navbar'
 import { Evaluate } from './pages/Evaluate'
 import './App.css'
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { Dashboard } from './components/Dashboard'
+import { Dashboard } from './pages/Dashboard'
+import BatchEvaluate from './pages/BatchEvaluate'
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Evaluate />} />
         <Route path="/evaluate" element={<Dashboard />} />
+        <Route path='/batchevaluate' element={<BatchEvaluate />}></Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
