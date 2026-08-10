@@ -1,19 +1,50 @@
-import { useMemo } from "react";
-
+import { useMemo, useState } from "react";
 import { useEvaluation } from "../context/EvaluationContext";
 
-import HeroSummary from "../components/HeroSummary";
-import MetricCard from "../components/MetricCard";
-import AgentAccordion from "../components/AgentAccordion";
-import EvidencePanel from "../components/EvidencePanel";
-import HallucinationPanel from "../components/HallucinationPanel";
-import VerdictCard from "../components/VerdictCard";
+import DashboardStats from "../components/DashboardStats";
+import AverageScoreChart from "../components/AverageScoreChart";
+import VerdictPieChart from "../components/VerdictPieChart";
+import TrendChart from "../components/TrendChart";
+import HallucinationAnalytics from "../components/HallucinationAnalytics";
+import DashboardFilters from "../components/DashboardFilters";
 
 export const Dashboard = () => {
   const { evaluations, clearEvaluations } = useEvaluation();
 
+  const [search, setSearch] = useState("");
+  const [verdictFilter, setVerdictFilter] = useState("");
+
+  /*
+   * ---------------------------------------------------------
+   * FILTERED EVALUATIONS
+   * ---------------------------------------------------------
+   */
+
+  const filteredEvaluations = useMemo(() => {
+    return evaluations.filter((evaluation) => {
+      const matchesSearch =
+        search.trim() === "" ||
+        evaluation.question
+          .toLowerCase()
+          .includes(search.toLowerCase());
+
+      const verdict = getVerdictLabel(evaluation);
+
+      const matchesVerdict =
+        verdictFilter === "" || verdict === verdictFilter;
+
+      return matchesSearch && matchesVerdict;
+    });
+  }, [evaluations, search, verdictFilter]);
+
+  /*
+   * ---------------------------------------------------------
+   * AVERAGES
+   * ---------------------------------------------------------
+   */
+
   const averages = useMemo(() => {
-    if (evaluations.length === 0) {
+    if (filteredEvaluations.length === 0) {
       return {
         relevance: 0,
         accuracy: 0,
@@ -23,407 +54,743 @@ export const Dashboard = () => {
       };
     }
 
+    const relevance =
+      filteredEvaluations.reduce(
+        (sum, evaluation) =>
+          sum + evaluation.result.relevance.score,
+        0
+      ) / filteredEvaluations.length;
+
+    const accuracy =
+      filteredEvaluations.reduce(
+        (sum, evaluation) =>
+          sum + evaluation.result.accuracy.score,
+        0
+      ) / filteredEvaluations.length;
+
+    const hallucination =
+      filteredEvaluations.reduce(
+        (sum, evaluation) =>
+          sum + evaluation.result.hallucination.score,
+        0
+      ) / filteredEvaluations.length;
+
+    const completeness =
+      filteredEvaluations.reduce(
+        (sum, evaluation) =>
+          sum + getCompletenessScore(evaluation),
+        0
+      ) / filteredEvaluations.length;
+
+    const overall =
+      (relevance +
+        accuracy +
+        hallucination +
+        completeness) /
+      4;
+
     return {
-      relevance:
-        evaluations.reduce(
-          (sum, item) => sum + item.result.relevance.score,
-          0
-        ) / evaluations.length,
-
-      accuracy:
-        evaluations.reduce(
-          (sum, item) => sum + item.result.accuracy.score,
-          0
-        ) / evaluations.length,
-
-      hallucination:
-        evaluations.reduce(
-          (sum, item) => sum + item.result.hallucination.score,
-          0
-        ) / evaluations.length,
-
-      completeness:
-        evaluations.reduce(
-          (sum, item) => sum + item.result.completeness.score,
-          0
-        ) / evaluations.length,
-
-      overall:
-        evaluations.reduce(
-          (sum, item) =>
-            sum + item.result.verdict.overall_score,
-          0
-        ) / evaluations.length,
+      relevance,
+      accuracy,
+      hallucination,
+      completeness,
+      overall,
     };
-  }, [evaluations]);
+  }, [filteredEvaluations]);
+
+  /*
+   * ---------------------------------------------------------
+   * VERDICT COUNTS
+   * ---------------------------------------------------------
+   */
+
+  const verdictCounts = useMemo(() => {
+    let excellent = 0;
+    let good = 0;
+    let needsImprovement = 0;
+    let fail = 0;
+
+    filteredEvaluations.forEach((evaluation) => {
+      const verdict = getVerdictLabel(evaluation);
+
+      if (verdict === "Excellent") {
+        excellent++;
+      } else if (verdict === "Good") {
+        good++;
+      } else if (verdict === "Needs Improvement") {
+        needsImprovement++;
+      } else if (verdict === "Fail") {
+        fail++;
+      }
+    });
+
+    return {
+      excellent,
+      good,
+      needsImprovement,
+      fail,
+    };
+  }, [filteredEvaluations]);
+
+  /*
+   * ---------------------------------------------------------
+   * HALLUCINATION ANALYTICS
+   * ---------------------------------------------------------
+   */
+
+  const hallucinationAnalytics = useMemo(() => {
+    const totalResponses = filteredEvaluations.length;
+
+    const hallucinatedResponses = filteredEvaluations.filter(
+      (evaluation) =>
+        evaluation.result.hallucination.hallucinated_claims
+          .length > 0
+    ).length;
+
+    const totalHallucinatedClaims =
+      filteredEvaluations.reduce(
+        (sum, evaluation) =>
+          sum +
+          evaluation.result.hallucination.hallucinated_claims
+            .length,
+        0
+      );
+
+    return {
+      totalResponses,
+      hallucinatedResponses,
+      totalHallucinatedClaims,
+    };
+  }, [filteredEvaluations]);
+
+  /*
+   * ---------------------------------------------------------
+   * TREND DATA
+   * ---------------------------------------------------------
+   */
+
+  const trendData = useMemo(() => {
+    return [...filteredEvaluations]
+      .sort(
+        (a, b) =>
+          new Date(a.evaluatedAt).getTime() -
+          new Date(b.evaluatedAt).getTime()
+      )
+      .map((evaluation, index) => ({
+        index: index + 1,
+        overall: getOverallScore(evaluation),
+      }));
+  }, [filteredEvaluations]);
+
+  /*
+   * ---------------------------------------------------------
+   * CLEAR FILTERS
+   * ---------------------------------------------------------
+   */
+
+  const clearFilters = () => {
+    setSearch("");
+    setVerdictFilter("");
+  };
 
   return (
     <div className="mx-auto max-w-7xl p-8">
 
-      {/* Header */}
+      {/* =====================================================
+          HEADER
+      ====================================================== */}
 
-      <div className="mb-10 flex items-center justify-between">
+      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
         <div>
-
-          <h1 className="text-4xl font-bold text-white">
+          <h1 className="text-3xl font-bold text-white">
             Evaluation Dashboard
           </h1>
 
-          <p className="mt-2 text-slate-400">
-            Total Evaluations : {evaluations.length}
+          <p className="mt-1 text-slate-400">
+            Total Evaluations: {evaluations.length}
           </p>
-
         </div>
 
         <button
           onClick={clearEvaluations}
-          className="rounded-xl bg-red-600 px-5 py-3 text-white transition hover:bg-red-700"
+          className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
         >
           Clear History
         </button>
 
       </div>
 
-      {/* Overall Analytics */}
+      {/* =====================================================
+          FILTERS
+      ====================================================== */}
 
-      <div className="mb-10">
+      <div className="mb-8">
 
-        <HeroSummary
-          overallScore={averages.overall}
-          verdict="Average Evaluation Quality"
-          confidence={1}
+        <DashboardFilters
+          search={search}
+          verdict={verdictFilter}
+          onSearchChange={setSearch}
+          onVerdictChange={setVerdictFilter}
+        />
+
+        {(search || verdictFilter) && (
+          <div className="mt-3 flex items-center justify-between">
+
+            <p className="text-sm text-slate-400">
+              Showing {filteredEvaluations.length} of{" "}
+              {evaluations.length} evaluations
+            </p>
+
+            <button
+              onClick={clearFilters}
+              className="text-sm text-violet-400 hover:text-violet-300"
+            >
+              Clear Filters
+            </button>
+
+          </div>
+        )}
+
+      </div>
+
+      {/* =====================================================
+          DASHBOARD STATISTICS
+      ====================================================== */}
+
+      <div className="mb-8">
+
+        <DashboardStats
+          totalEvaluations={filteredEvaluations.length}
+          excellent={verdictCounts.excellent}
+          good={verdictCounts.good}
+          needsImprovement={verdictCounts.needsImprovement}
+          fail={verdictCounts.fail}
+          averageOverall={averages.overall}
+          hallucinationFrequency={
+            hallucinationAnalytics.totalResponses === 0
+              ? 0
+              : (hallucinationAnalytics.hallucinatedResponses /
+                  hallucinationAnalytics.totalResponses) *
+                100
+          }
         />
 
       </div>
 
-      {/* Average Metrics */}
+      {/* =====================================================
+          CHARTS
+      ====================================================== */}
 
-      <div className="mb-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+      {filteredEvaluations.length > 0 && (
+        <>
+          <div className="mb-8 grid gap-8 lg:grid-cols-2">
 
-        <MetricCard
-          title="Relevance"
-          score={averages.relevance}
-          confidence={1}
-          reason="Average relevance score across all evaluations."
-          color="text-blue-400"
-        />
+            <AverageScoreChart
+              relevance={averages.relevance}
+              accuracy={averages.accuracy}
+              hallucination={averages.hallucination}
+              completeness={averages.completeness}
+              overall={averages.overall}
+            />
 
-        <MetricCard
-          title="Accuracy"
-          score={averages.accuracy}
-          confidence={1}
-          reason="Average factual accuracy across all evaluations."
-          color="text-yellow-400"
-        />
+            <VerdictPieChart
+              excellent={verdictCounts.excellent}
+              good={verdictCounts.good}
+              needsImprovement={
+                verdictCounts.needsImprovement
+              }
+              fail={verdictCounts.fail}
+            />
 
-        <MetricCard
-          title="Hallucination"
-          score={averages.hallucination}
-          confidence={1}
-          reason="Average hallucination score."
-          color="text-red-400"
-        />
+          </div>
 
-        <MetricCard
-          title="Completeness"
-          score={averages.completeness}
-          confidence={1}
-          reason="Average completeness score."
-          color="text-green-400"
-        />
+          {/* =================================================
+              QUALITY TREND
+          ================================================== */}
 
-      </div>
+          <div className="mb-8">
+            <TrendChart data={trendData} />
+          </div>
+
+          {/* =================================================
+              HALLUCINATION ANALYTICS
+          ================================================== */}
+
+          <div className="mb-8">
+            <HallucinationAnalytics
+              totalResponses={
+                hallucinationAnalytics.totalResponses
+              }
+              hallucinatedResponses={
+                hallucinationAnalytics.hallucinatedResponses
+              }
+              totalHallucinatedClaims={
+                hallucinationAnalytics.totalHallucinatedClaims
+              }
+            />
+          </div>
+        </>
+      )}
+
+      {/* =====================================================
+          EMPTY STATE
+      ====================================================== */}
 
       {evaluations.length === 0 ? (
+        <div className="rounded-xl border border-slate-700 bg-slate-900 p-8 text-center text-slate-400">
+          No evaluations yet. Run an evaluation to see the
+          dashboard analytics.
+        </div>
+      ) : filteredEvaluations.length === 0 ? (
+        <div className="rounded-xl border border-slate-700 bg-slate-900 p-8 text-center">
 
-        <div className="rounded-2xl border border-slate-700 bg-slate-900 p-10 text-center text-slate-400">
+          <p className="text-slate-400">
+            No evaluations match the selected filters.
+          </p>
 
-          No evaluations yet.
+          <button
+            onClick={clearFilters}
+            className="mt-4 rounded-lg bg-violet-600 px-4 py-2 text-white hover:bg-violet-700"
+          >
+            Clear Filters
+          </button>
 
         </div>
+      ) : null}
 
-      ) : (
+      {/* =====================================================
+          EVALUATION HISTORY
+      ====================================================== */}
 
-        <div className="space-y-10">
+      {filteredEvaluations.length > 0 && (
+        <div className="space-y-6">
 
-          {evaluations.map((evaluation) => (
-            <div
-              key={evaluation.id}
-              className="rounded-3xl border border-slate-700 bg-slate-900 p-8 shadow-lg"
-            >
+          <div className="mb-4">
 
-              <HeroSummary
-                overallScore={
-                  evaluation.result.verdict.overall_score
-                }
-                verdict={
-                  evaluation.result.verdict.verdict
-                }
-                confidence={
-                  (
-                    evaluation.result.relevance.confidence +
-                    evaluation.result.accuracy.confidence +
-                    evaluation.result.hallucination.confidence +
-                    evaluation.result.completeness.confidence
-                  ) / 4
-                }
-              />
+            <h2 className="text-2xl font-bold text-white">
+              Evaluation History
+            </h2>
 
-              <div className="mt-8">
+            <p className="text-sm text-slate-400">
+              Detailed results for each evaluation
+            </p>
 
-                <h2 className="text-xl font-semibold text-violet-400">
-                  Question
-                </h2>
+          </div>
 
-                <p className="mt-3 text-slate-300">
-                  {evaluation.question}
-                </p>
+          {filteredEvaluations.map((evaluation) => {
 
-              </div>
+            const overall = getOverallScore(evaluation);
 
-              <div className="mt-8">
+            const verdict = getVerdictLabel(evaluation);
 
-                <h2 className="text-xl font-semibold text-violet-400">
-                  AI Response
-                </h2>
+            return (
+              <div
+                key={evaluation.id}
+                className="rounded-xl border border-slate-700 bg-slate-900 p-6"
+              >
 
-                <p className="mt-3 whitespace-pre-wrap text-slate-300">
-                  {evaluation.response}
-                </p>
+                {/* =============================================
+                    EVALUATION HEADER
+                ============================================== */}
 
-              </div>
+                <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
 
-              <div className="mt-10 grid gap-6 lg:grid-cols-2">
-                                <MetricCard
-                  title="Relevance"
-                  score={evaluation.result.relevance.score}
-                  confidence={
-                    evaluation.result.relevance.confidence
-                  }
-                  reason={
-                    evaluation.result.relevance.reason
-                  }
-                  color="text-blue-400"
-                />
+                  <div className="flex items-center gap-4">
 
-                <MetricCard
-                  title="Accuracy"
-                  score={evaluation.result.accuracy.score}
-                  confidence={
-                    evaluation.result.accuracy.confidence
-                  }
-                  reason={
-                    evaluation.result.accuracy.reason
-                  }
-                  color="text-yellow-400"
-                />
+                    <h2 className="text-xl font-semibold text-white">
+                      Overall Score: {overall.toFixed(2)}
+                    </h2>
 
-                <MetricCard
-                  title="Hallucination"
-                  score={
-                    evaluation.result.hallucination.score
-                  }
-                  confidence={
-                    evaluation.result.hallucination.confidence
-                  }
-                  reason={
-                    evaluation.result.hallucination.reason
-                  }
-                  color="text-red-400"
-                />
+                    <VerdictBadge verdict={verdict} />
 
-                <MetricCard
-                  title="Completeness"
-                  score={
-                    evaluation.result.completeness.score
-                  }
-                  confidence={
-                    evaluation.result.completeness.confidence
-                  }
-                  reason={
-                    evaluation.result.completeness.reason
-                  }
-                  color="text-green-400"
-                />
+                  </div>
 
-              </div>
+                  <span className="text-sm text-slate-400">
+                    {new Date(
+                      evaluation.evaluatedAt
+                    ).toLocaleString()}
+                  </span>
 
-              {/* Agent Analysis */}
+                </div>
 
-              <div className="mt-10 space-y-5">
+                {/* =============================================
+                    QUESTION
+                ============================================== */}
 
-                <AgentAccordion
-                  title="Relevance Agent"
-                >
+                <div className="mb-4">
+
+                  <h3 className="font-semibold text-violet-400">
+                    Question
+                  </h3>
+
+                  <p className="text-slate-300">
+                    {evaluation.question}
+                  </p>
+
+                </div>
+
+                {/* =============================================
+                    AI RESPONSE
+                ============================================== */}
+
+                <div className="mb-4">
+
+                  <h3 className="font-semibold text-violet-400">
+                    AI Response
+                  </h3>
+
+                  <p className="whitespace-pre-wrap text-slate-300">
+                    {evaluation.response}
+                  </p>
+
+                </div>
+
+                {/* =============================================
+                    DIMENSION SCORES
+                ============================================== */}
+
+                <div className="mb-6 grid gap-4 md:grid-cols-4">
+
+                  <Score
+                    title="Relevance"
+                    value={evaluation.result.relevance.score}
+                  />
+
+                  <Score
+                    title="Accuracy"
+                    value={evaluation.result.accuracy.score}
+                  />
+
+                  <Score
+                    title="Hallucination"
+                    value={
+                      evaluation.result.hallucination.score
+                    }
+                  />
+
+                  <Score
+                    title="Completeness"
+                    value={getCompletenessScore(evaluation)}
+                  />
+
+                </div>
+
+                {/* =============================================
+                    REASONS
+                ============================================== */}
+
+                <Section title="Relevance Reason">
                   {evaluation.result.relevance.reason}
-                </AgentAccordion>
+                </Section>
 
-                <AgentAccordion
-                  title="Accuracy Agent"
-                >
+                <Section title="Accuracy Reason">
                   {evaluation.result.accuracy.reason}
-                </AgentAccordion>
+                </Section>
 
-                <AgentAccordion
-                  title="Hallucination Agent"
-                >
+                <Section title="Hallucination Reason">
                   {evaluation.result.hallucination.reason}
-                </AgentAccordion>
+                </Section>
 
-                <AgentAccordion
-                  title="Completeness Agent"
-                >
-                  {evaluation.result.completeness.reason}
-                </AgentAccordion>
+                {evaluation.result.completeness && (
+                  <Section title="Completeness Reason">
+                    {evaluation.result.completeness.reason}
+                  </Section>
+                )}
 
-              </div>
+                {/* =============================================
+                    SUPPORTING EVIDENCE
+                ============================================== */}
 
-              {/* Evidence */}
+                <div className="mt-5">
 
-              <div className="mt-10">
+                  <h3 className="mb-2 font-semibold text-white">
+                    Supporting Evidence
+                  </h3>
 
-                <EvidencePanel
-                  evidence={
-                    evaluation.result.accuracy
-                      .supporting_evidence
-                  }
-                />
+                  <ul className="ml-6 list-disc space-y-1">
 
-              </div>
+                    {evaluation.result.accuracy
+                      .supporting_evidence.length === 0 ? (
 
-              {/* Completeness Details */}
+                      <li className="text-slate-400">
+                        No evidence returned.
+                      </li>
 
-              <div className="mt-10 grid gap-6 lg:grid-cols-2">
+                    ) : (
 
-                <div className="rounded-2xl border border-green-700 bg-slate-900 p-6">
-
-                  <h2 className="mb-5 text-xl font-bold text-green-400">
-                    Covered Aspects
-                  </h2>
-
-                  {evaluation.result.completeness
-                    .covered_aspects.length === 0 ? (
-
-                    <p className="text-slate-400">
-                      No covered aspects.
-                    </p>
-
-                  ) : (
-
-                    <ul className="list-disc space-y-2 pl-6 text-slate-300">
-
-                      {evaluation.result.completeness.covered_aspects.map(
-                        (aspect, index) => (
-                          <li key={index}>
-                            {aspect}
-                          </li>
+                      evaluation.result.accuracy
+                        .supporting_evidence.map(
+                          (e, i) => (
+                            <li
+                              key={i}
+                              className="text-slate-300"
+                            >
+                              {e}
+                            </li>
+                          )
                         )
-                      )}
+                    )}
 
-                    </ul>
-
-                  )}
+                  </ul>
 
                 </div>
 
-                <div className="rounded-2xl border border-red-700 bg-slate-900 p-6">
+                {/* =============================================
+                    HALLUCINATED CLAIMS
+                ============================================== */}
 
-                  <h2 className="mb-5 text-xl font-bold text-red-400">
-                    Missing Aspects
-                  </h2>
+                {evaluation.result.hallucination
+                  .hallucinated_claims.length > 0 && (
 
-                  {evaluation.result.completeness
-                    .missing_aspects.length === 0 ? (
+                  <div className="mt-5">
 
-                    <p className="text-green-400">
-                      No missing aspects detected.
-                    </p>
+                    <h3 className="mb-2 font-semibold text-red-400">
+                      Hallucinated Claims
+                    </h3>
 
-                  ) : (
+                    {evaluation.result.hallucination
+                      .hallucinated_claims.map(
+                        (claim, index) => (
 
-                    <ul className="list-disc space-y-2 pl-6 text-slate-300">
+                          <div
+                            key={index}
+                            className="mb-3 rounded-lg border border-red-700 p-4"
+                          >
 
-                      {evaluation.result.completeness.missing_aspects.map(
-                        (aspect, index) => (
-                          <li key={index}>
-                            {aspect}
-                          </li>
+                            <p className="font-semibold text-white">
+                              {claim.claim}
+                            </p>
+
+                            <p className="text-sm text-slate-400">
+                              {claim.reason}
+                            </p>
+
+                          </div>
                         )
                       )}
 
-                    </ul>
-
-                  )}
-
-                </div>
+                  </div>
+                )}
 
               </div>
-                            {/* Hallucination Panel */}
-
-              <div className="mt-10">
-
-                <HallucinationPanel
-                  hallucinatedClaims={
-                    evaluation.result.hallucination
-                      .hallucinated_claims
-                  }
-                  supportedClaims={
-                    evaluation.result.hallucination
-                      .supported_claims
-                  }
-                />
-
-              </div>
-
-              {/* Verdict */}
-
-              <div className="mt-10">
-
-                <VerdictCard
-                  verdict={
-                    evaluation.result.verdict.verdict
-                  }
-                  overallScore={
-                    evaluation.result.verdict
-                      .overall_score
-                  }
-                  strengths={
-                    evaluation.result.verdict
-                      .strengths
-                  }
-                  weaknesses={
-                    evaluation.result.verdict
-                      .weaknesses
-                  }
-                  recommendation={
-                    evaluation.result.verdict
-                      .recommendation
-                  }
-                />
-
-              </div>
-
-              {/* Footer */}
-
-              <div className="mt-10 flex justify-end">
-
-                <p className="text-sm text-slate-500">
-                  Evaluated on{" "}
-                  {new Date(
-                    evaluation.evaluatedAt
-                  ).toLocaleString()}
-                </p>
-
-              </div>
-
-            </div>
-          ))}
+            );
+          })}
 
         </div>
-
       )}
 
     </div>
   );
 };
+
+/* ============================================================
+   HELPER FUNCTIONS
+============================================================ */
+
+/**
+ * Gets the completeness score.
+ *
+ * Supports the structure we've been using:
+ *
+ * result.completeness.score
+ *
+ * and safely falls back to 0 if the property
+ * does not exist.
+ */
+function getCompletenessScore(evaluation: any): number {
+  return Number(
+    evaluation?.result?.completeness?.score ?? 0
+  );
+}
+
+/**
+ * Calculates the overall score for one evaluation.
+ */
+function getOverallScore(evaluation: any): number {
+  const relevance =
+    Number(evaluation?.result?.relevance?.score ?? 0);
+
+  const accuracy =
+    Number(evaluation?.result?.accuracy?.score ?? 0);
+
+  const hallucination =
+    Number(
+      evaluation?.result?.hallucination?.score ?? 0
+    );
+
+  const completeness =
+    Number(
+      evaluation?.result?.completeness?.score ?? 0
+    );
+
+  return (
+    (relevance +
+      accuracy +
+      hallucination +
+      completeness) /
+    4
+  );
+}
+
+/**
+ * Converts the backend verdict into one of the
+ * dashboard categories.
+ *
+ * If your VerdictAgent already returns:
+ *
+ * verdict.label
+ *
+ * or
+ *
+ * verdict.verdict
+ *
+ * we support both.
+ */
+function getVerdictLabel(evaluation: any): string {
+  const verdict =
+    evaluation?.result?.verdict;
+
+  if (!verdict) {
+    return getOverallVerdictFromScore(
+      getOverallScore(evaluation)
+    );
+  }
+
+  const value = String(
+    verdict.label ??
+      verdict.verdict ??
+      verdict.recommendation ??
+      ""
+  ).toLowerCase();
+
+  if (
+    value.includes("excellent") ||
+    value.includes("pass")
+  ) {
+    return "Excellent";
+  }
+
+  if (value.includes("good")) {
+    return "Good";
+  }
+
+  if (
+    value.includes("needs") ||
+    value.includes("improvement")
+  ) {
+    return "Needs Improvement";
+  }
+
+  if (
+    value.includes("fail") ||
+    value.includes("poor")
+  ) {
+    return "Fail";
+  }
+
+  return getOverallVerdictFromScore(
+    getOverallScore(evaluation)
+  );
+}
+
+/**
+ * Fallback verdict calculation when the backend
+ * verdict field is unavailable.
+ */
+function getOverallVerdictFromScore(
+  score: number
+): string {
+  if (score >= 8.5) {
+    return "Excellent";
+  }
+
+  if (score >= 7) {
+    return "Good";
+  }
+
+  if (score >= 5) {
+    return "Needs Improvement";
+  }
+
+  return "Fail";
+}
+
+/* ============================================================
+   SMALL UI COMPONENTS
+============================================================ */
+
+function Score({
+  title,
+  value,
+}: {
+  title: string;
+  value: number;
+}) {
+  return (
+    <div className="rounded-lg bg-slate-800 p-4">
+
+      <p className="text-slate-400">
+        {title}
+      </p>
+
+      <h2 className="mt-1 text-3xl font-bold text-white">
+        {Number(value ?? 0).toFixed(2)}
+      </h2>
+
+    </div>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mt-4">
+
+      <h3 className="mb-2 font-semibold text-white">
+        {title}
+      </h3>
+
+      <p className="text-slate-300">
+        {children}
+      </p>
+
+    </div>
+  );
+}
+
+function VerdictBadge({
+  verdict,
+}: {
+  verdict: string;
+}) {
+  const classes: Record<string, string> = {
+    Excellent:
+      "bg-green-500/20 text-green-400 border-green-500/30",
+
+    Good:
+      "bg-blue-500/20 text-blue-400 border-blue-500/30",
+
+    "Needs Improvement":
+      "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+
+    Fail:
+      "bg-red-500/20 text-red-400 border-red-500/30",
+  };
+
+  return (
+    <span
+      className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+        classes[verdict] ??
+        "bg-slate-500/20 text-slate-400 border-slate-500/30"
+      }`}
+    >
+      {verdict}
+    </span>
+  );
+}

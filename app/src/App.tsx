@@ -13,7 +13,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Evaluate />} />
         <Route path="/evaluate" element={<Dashboard />} />
-        <Route path='/batchevaluate' element={<BatchEvaluate />}></Route>
+        <Route path='/batchevaluate' element={<BatchEvaluate />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
