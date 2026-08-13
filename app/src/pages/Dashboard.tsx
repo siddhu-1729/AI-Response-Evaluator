@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { downloadReport } from "../services/api";
 import { useEvaluation } from "../context/EvaluationContext";
 
 import DashboardStats from "../components/DashboardStats";
@@ -13,6 +14,7 @@ export const Dashboard = () => {
 
   const [search, setSearch] = useState("");
   const [verdictFilter, setVerdictFilter] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   /*
    * ---------------------------------------------------------
@@ -193,6 +195,58 @@ export const Dashboard = () => {
     setVerdictFilter("");
   };
 
+  const handleExportReport = async () => {
+  if (filteredEvaluations.length === 0) {
+    alert("There are no evaluations to export.");
+    return;
+  }
+
+  try {
+    setIsExporting(true);
+
+    const results = filteredEvaluations.map((evaluation) => ({
+      question: evaluation.question,
+      response: evaluation.response,
+      evaluation: evaluation.result,
+    }));
+
+    const pdfBlob = await downloadReport(
+      "/api/v1/reports/batch",
+      {
+        results,
+      }
+    );
+
+    const url = window.URL.createObjectURL(pdfBlob);
+
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "evaluation-report.pdf";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+
+    window.URL.revokeObjectURL(url);
+
+  } catch (error) {
+    console.error(
+      "Failed to export evaluation report:",
+      error
+    );
+
+    alert(
+      "Failed to generate the PDF report. Please try again."
+    );
+
+  } finally {
+    setIsExporting(false);
+  }
+};
+
   return (
     <div className="mx-auto max-w-7xl p-8">
 
@@ -212,12 +266,29 @@ export const Dashboard = () => {
           </p>
         </div>
 
-        <button
-          onClick={clearEvaluations}
-          className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
-        >
-          Clear History
-        </button>
+        <div className="flex flex-wrap gap-3">
+
+  <button
+    onClick={handleExportReport}
+    disabled={
+      isExporting ||
+      filteredEvaluations.length === 0
+    }
+    className="rounded-lg bg-violet-600 px-4 py-2 text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    {isExporting
+      ? "Generating Report..."
+      : "Export PDF Report"}
+  </button>
+
+  <button
+    onClick={clearEvaluations}
+    className="rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
+  >
+    Clear History
+  </button>
+
+</div>
 
       </div>
 

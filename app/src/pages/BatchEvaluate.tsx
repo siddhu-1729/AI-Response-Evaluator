@@ -6,6 +6,8 @@ import BatchSummary from "../components/BatchSummary";
 import BatchTable from "../components/Batchtable";
 import BatchDetailsModal from "../components/BatchDetailsModal";
 
+import { useEvaluation } from "../context/EvaluationContext";
+
 import type {
   BatchEvaluationResponse,
   BatchResult,
@@ -21,6 +23,8 @@ const BatchEvaluate = () => {
 
   const [selectedResult, setSelectedResult] =
     useState<BatchResult | null>(null);
+
+const { addEvaluation } = useEvaluation();
 
   const handleUpload = async () => {
     if (!file) return;
@@ -43,6 +47,17 @@ const BatchEvaluate = () => {
       );
 
       setBatchResult(response.data);
+      setBatchResult(response.data);
+// adding results to the context
+response.data.results.forEach((item) => {
+  addEvaluation({
+    id: crypto.randomUUID(),
+    question: item.question,
+    response: item.response,
+    evaluatedAt: new Date().toISOString(),
+    result: item.evaluation,
+  });
+});
     } catch (error) {
       console.error(error);
       alert("Batch Evaluation Failed.");

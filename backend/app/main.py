@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from app.api.evaluation import router as evalution_router
 from app.api.batch_evaluation import router as batch_router
+from app.api.report import router as report_router
 from fastapi.middleware.cors import CORSMiddleware
 
 app=FastAPI(
@@ -27,6 +28,12 @@ app.include_router(
     batch_router,
     # prefix="/api/v1/batch_evaluation",
     # tags=["Batch Evaluation"]
+)
+
+# Routing for report generation 
+app.include_router(
+    report_router,
+    prefix="/api/v1/reports",
 )
 
 @app.get("/test")
