@@ -1,0 +1,62 @@
+{
+    "relevance": {
+        "score": 10.0,
+        "label": "Fully Relevant",
+        "confidence": 1.0,
+        "reason": "The AI response directly addresses the user's question 'What is Docker?' by providing a definition of what Docker is and its purpose."
+    },
+    "accuracy": {
+        "score": 0.0,
+        "confidence": 1.0,
+        "supporting_evidence": [],
+        "reason": "The AI response provides a definition of Docker as a containerization platform. None of the provided reference evidence discusses 'Docker' in the context of a containerization platform, nor does it define any of the related concepts such as 'containerization', 'packaging applications with dependencies', or 'solving works on my machine problem'. The evidence mentions 'docks' in a historical/geographical context (Southampton, New Haven) or 'the Dock' as a UI element in Mac OS X, which are entirely different concepts."
+    },
+    "hallucination": {
+        "score": 0.0,
+        "confidence": 1.0,
+        "hallucinated_claims": [
+            {
+                "claim": "Docker is containerization platform",
+                "reason": "The claim is not supported by any of the provided reference evidence. The evidence discusses physical docks or a Mac OS X UI element called 'the Dock', not a containerization platform named 'Docker'."
+            },
+            {
+                "claim": "used to package our application with all required dependencies",
+                "reason": "The claim is not supported by any of the provided reference evidence. The evidence does not describe application packaging or dependencies in relation to 'Docker'."
+            },
+            {
+                "claim": "and makes it capable to run on any system",
+                "reason": "The claim is not supported by any of the provided reference evidence. The evidence does not discuss applications running on systems in relation to 'Docker'."
+            },
+            {
+                "claim": "by solving works on my machine problem",
+                "reason": "The claim is not supported by any of the provided reference evidence. The evidence does not mention this problem or its solution in relation to 'Docker'."
+            }
+        ],
+        "supported_claims": [],
+        "reason": "All claims made in the AI response regarding 'Docker' are completely unsupported by the provided reference evidence. The evidence only discusses 'docks' as physical structures or a UI element, not the software platform named Docker."
+    },
+    "completeness": {
+        "score": 0,
+        "confidence": 1.0,
+        "covered_aspects": [],
+        "missing_aspects": [
+            "Definition of Docker as a containerization platform",
+            "Purpose of Docker (packaging applications, managing dependencies)",
+            "Benefits of Docker (portability, 'works on my machine' problem)"
+        ],
+        "reason": "The provided reference evidence does not contain any information about 'Docker' as a containerization platform. Therefore, it is impossible for the AI response to be complete based *only* on the provided evidence. All aspects covered by the AI response regarding 'Docker' are entirely missing from the given evidence. The evidence only discusses physical docks or a UI element, which are irrelevant to the user's question about the software 'Docker'."
+    },
+    "verdict": {
+        "overall_score": 2.5,
+        "verdict": "Poor",
+        "strengths": [
+            "The response is highly relevant to the user's question."
+        ],
+        "weaknesses": [
+            "Some information is unsupported by the reference evidence.",
+            "The response contains unsupported or hallucinated claims.",
+            "The response omits important aspects of the expected answer."
+        ],
+        "recommendation": "The response should be regenerated because it contains significant issues."
+    }
+}

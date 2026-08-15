@@ -1,0 +1,304 @@
+{
+    "summary": {
+        "total_evaluations": 5,
+        "average_relevance": 10.0,
+        "average_accuracy": 1.0,
+        "average_hallucination": 1.0,
+        "average_completeness": 0.8,
+        "average_overall": 3.2
+    },
+    "results": [
+        {
+            "question": "What is Java?",
+            "response": "Java is a high-level, class-based programming language used to build applications.",
+            "evaluation": {
+                "relevance": {
+                    "score": 10.0,
+                    "label": "Fully Relevant",
+                    "confidence": 1.0,
+                    "reason": "The AI response directly addresses the user's question 'What is Java?' by providing a definition of Java."
+                },
+                "accuracy": {
+                    "score": 5.0,
+                    "confidence": 1.0,
+                    "supporting_evidence": [
+                        "Programming languages provide various ways of specifying programs for computers to run.",
+                        "IBM has also released code under different open source licenses, such as the platform-independent software framework Eclipse (worth approximately US$40 million at the time of the donation), the three-sentence International Components for Unicode (ICU) license, and the Java-based relational database management system (RDBMS) Apache Derby."
+                    ],
+                    "reason": "The response accurately identifies Java as a 'programming language' and implies it's 'used to build applications' (as evidenced by 'Java-based relational database management system (RDBMS) Apache Derby'). However, the evidence does not support the descriptors 'high-level' or 'class-based'."
+                },
+                "hallucination": {
+                    "score": 5.0,
+                    "confidence": 1.0,
+                    "hallucinated_claims": [
+                        {
+                            "claim": "Java is a high-level programming language.",
+                            "reason": "The evidence identifies Java as a 'programming language' but does not specify it as 'high-level'."
+                        },
+                        {
+                            "claim": "Java is a class-based programming language.",
+                            "reason": "The evidence identifies Java as a 'programming language' but does not specify it as 'class-based'."
+                        }
+                    ],
+                    "supported_claims": [
+                        {
+                            "claim": "Java is a programming language."
+                        },
+                        {
+                            "claim": "Java is used to build applications."
+                        }
+                    ],
+                    "reason": "The claims that Java is 'high-level' and 'class-based' are not supported by the provided evidence. The claims that it is a 'programming language' and 'used to build applications' are supported or strongly implied by the evidence."
+                },
+                "completeness": {
+                    "score": 4,
+                    "confidence": 0.9,
+                    "covered_aspects": [
+                        "Java is a programming language.",
+                        "Java is used to build applications."
+                    ],
+                    "missing_aspects": [
+                        "Who created Java (James Gosling).",
+                        "A specific example of a Java-based application/system mentioned (Apache Derby RDBMS).",
+                        "IBM's involvement with Java through open source initiatives."
+                    ],
+                    "reason": "While the response correctly identifies Java as a programming language used for applications, it misses other key pieces of information about Java explicitly mentioned in the evidence, such as its creator and a specific example of its use within IBM's open-source contributions."
+                },
+                "verdict": {
+                    "overall_score": 6.0,
+                    "verdict": "Fair",
+                    "strengths": [
+                        "The response is highly relevant to the user's question."
+                    ],
+                    "weaknesses": [
+                        "Some information is unsupported by the reference evidence.",
+                        "The response contains unsupported or hallucinated claims.",
+                        "The response omits important aspects of the expected answer."
+                    ],
+                    "recommendation": "The response should be reviewed and revised before use."
+                }
+            }
+        },
+        {
+            "question": "What is Python?",
+            "response": "Python is a high-level programming language known for its readability and simplicity.",
+            "evaluation": {
+                "relevance": {
+                    "score": 10.0,
+                    "label": "Fully relevant",
+                    "confidence": 1.0,
+                    "reason": "The AI response directly answers the user's question 'What is Python?' by defining it as a programming language with specific characteristics."
+                },
+                "accuracy": {
+                    "score": 0.0,
+                    "confidence": 1.0,
+                    "supporting_evidence": [],
+                    "reason": "The AI response states that 'Python is a high-level programming language known for its readability and simplicity.' The provided reference evidence discusses high-level programming languages in general but does not mention Python specifically, nor does it support the claims about Python's readability or simplicity. Therefore, none of the information about Python in the response is supported by the provided evidence."
+                },
+                "hallucination": {
+                    "score": 0.0,
+                    "confidence": 1.0,
+                    "hallucinated_claims": [
+                        {
+                            "claim": "Python is a high-level programming language.",
+                            "reason": "The evidence discusses 'high-level programming languages' but never mentions Python by name, so this specific connection is unsupported."
+                        },
+                        {
+                            "claim": "Python is known for its readability.",
+                            "reason": "The evidence does not mention Python or its readability."
+                        },
+                        {
+                            "claim": "Python is known for its simplicity.",
+                            "reason": "The evidence does not mention Python or its simplicity."
+                        }
+                    ],
+                    "supported_claims": [],
+                    "reason": "All claims made in the AI response about Python are unsupported by the provided reference evidence. The evidence does not contain any information about Python."
+                },
+                "completeness": {
+                    "score": 0,
+                    "confidence": 1.0,
+                    "covered_aspects": [],
+                    "missing_aspects": [
+                        "Any information about Python from the provided evidence."
+                    ],
+                    "reason": "The provided reference evidence does not contain any information about Python. Therefore, based on the evidence, the AI response could not possibly provide a complete answer to 'What is Python?'. The AI response attempts to answer the question, but the information provided is not derived from the given text, making it complete based on external knowledge but entirely missing based on the provided evidence."
+                },
+                "verdict": {
+                    "overall_score": 2.5,
+                    "verdict": "Poor",
+                    "strengths": [
+                        "The response is highly relevant to the user's question."
+                    ],
+                    "weaknesses": [
+                        "Some information is unsupported by the reference evidence.",
+                        "The response contains unsupported or hallucinated claims.",
+                        "The response omits important aspects of the expected answer."
+                    ],
+                    "recommendation": "The response should be regenerated because it contains significant issues."
+                }
+            }
+        },
+        {
+            "question": "What is HTTP?",
+            "response": "HTTP is a protocol used for communication between clients and web servers.",
+            "evaluation": {
+                "relevance": {
+                    "score": 10.0,
+                    "label": "excellent",
+                    "confidence": 1.0,
+                    "reason": "The AI response directly answers the user's question by defining what HTTP is."
+                },
+                "accuracy": {
+                    "score": 0.0,
+                    "confidence": 1.0,
+                    "supporting_evidence": [],
+                    "reason": "The AI response states that 'HTTP is a protocol used for communication between clients and web servers.' However, the provided reference evidence does not contain any information about HTTP, its definition, its function, or its components (clients, web servers). Therefore, the claims made by the AI are not supported by the given evidence."
+                },
+                "hallucination": {
+                    "score": 0.0,
+                    "confidence": 1.0,
+                    "hallucinated_claims": [
+                        {
+                            "claim": "HTTP is a protocol",
+                            "reason": "The provided reference evidence does not contain any information about HTTP being a protocol."
+                        },
+                        {
+                            "claim": "used for communication between clients and web servers",
+                            "reason": "The provided reference evidence does not contain any information about HTTP being used for communication between clients and web servers."
+                        }
+                    ],
+                    "supported_claims": [],
+                    "reason": "All factual claims made in the AI response regarding HTTP are unsupported by the provided reference evidence, which is completely silent on the topic of HTTP."
+                },
+                "completeness": {
+                    "score": 0,
+                    "confidence": 1.0,
+                    "covered_aspects": [],
+                    "missing_aspects": [
+                        "Any definition or description of HTTP",
+                        "The nature of HTTP as a protocol",
+                        "The role of HTTP in communication"
+                    ],
+                    "reason": "The AI response attempts to define HTTP. However, the provided reference evidence does not contain any information about HTTP whatsoever. Therefore, no aspects of the user's question about HTTP could be covered using the evidence, meaning all expected aspects (had they been in the evidence) are considered missing from the perspective of being sourced from the provided text."
+                },
+                "verdict": {
+                    "overall_score": 2.5,
+                    "verdict": "Poor",
+                    "strengths": [
+                        "The response is highly relevant to the user's question."
+                    ],
+                    "weaknesses": [
+                        "Some information is unsupported by the reference evidence.",
+                        "The response contains unsupported or hallucinated claims.",
+                        "The response omits important aspects of the expected answer."
+                    ],
+                    "recommendation": "The response should be regenerated because it contains significant issues."
+                }
+            }
+        },
+        {
+            "question": "What is Docker?",
+            "response": "Docker is a platform used to package applications and their dependencies into containers.",
+            "evaluation": {
+                "relevance": {
+                    "score": 10.0,
+                    "label": "Fully Relevant",
+                    "confidence": 1.0,
+                    "reason": "The AI response directly answers the user's question 'What is Docker?' by providing a definition for the term."
+                },
+                "accuracy": {
+                    "score": 0.0,
+                    "confidence": 1.0,
+                    "supporting_evidence": [],
+                    "reason": "The AI's definition of 'Docker' as a platform for packaging applications and their dependencies into containers is not supported by any of the provided reference evidence. The evidence discusses 'docks' in a maritime context and 'the Dock' as an Apple OS X user interface feature, but nothing related to the software platform 'Docker'."
+                },
+                "hallucination": {
+                    "score": 0.0,
+                    "confidence": 1.0,
+                    "hallucinated_claims": [
+                        {
+                            "claim": "Docker is a platform used to package applications and their dependencies into containers.",
+                            "reason": "This claim about Docker being a software platform for containerization is not found anywhere in the provided reference evidence. The evidence mentions 'docks' (maritime structures) and 'the Dock' (Mac OS X UI feature), but not 'Docker' as a software technology."
+                        }
+                    ],
+                    "supported_claims": [],
+                    "reason": "The entire response consists of a single claim about 'Docker' which is not supported by the provided reference evidence. The evidence does not contain any information about 'Docker' as a software platform for containerization."
+                },
+                "completeness": {
+                    "score": 0,
+                    "confidence": 1.0,
+                    "covered_aspects": [],
+                    "missing_aspects": [
+                        "Any definition or description of 'Docker' as a software platform.",
+                        "Information about the purpose, features, or functionality of 'Docker'."
+                    ],
+                    "reason": "The provided reference evidence does not contain any information about 'Docker' as a software platform used for packaging applications into containers. Therefore, it is impossible for the AI to completely answer the question 'What is Docker?' using only the provided evidence. The AI's response is a definition external to the evidence, meaning no aspects from the evidence could be covered regarding this specific question."
+                },
+                "verdict": {
+                    "overall_score": 2.5,
+                    "verdict": "Poor",
+                    "strengths": [
+                        "The response is highly relevant to the user's question."
+                    ],
+                    "weaknesses": [
+                        "Some information is unsupported by the reference evidence.",
+                        "The response contains unsupported or hallucinated claims.",
+                        "The response omits important aspects of the expected answer."
+                    ],
+                    "recommendation": "The response should be regenerated because it contains significant issues."
+                }
+            }
+        },
+        {
+            "question": "What is PostgreSQL?",
+            "response": "PostgreSQL is an open-source relational database management system.",
+            "evaluation": {
+                "relevance": {
+                    "score": 10.0,
+                    "label": "Fully Relevant",
+                    "confidence": 1.0,
+                    "reason": "The AI response directly answers the user's question 'What is PostgreSQL?' by providing a concise definition."
+                },
+                "accuracy": {
+                    "score": 0.0,
+                    "confidence": 1.0,
+                    "supporting_evidence": [],
+                    "reason": "The provided reference evidence does not contain any mention of 'PostgreSQL' or any information about it being an 'open-source relational database management system'. Therefore, the response is not supported by the given evidence."
+                },
+                "hallucination": {
+                    "score": 0.0,
+                    "confidence": 1.0,
+                    "hallucinated_claims": [
+                        {
+                            "claim": "PostgreSQL is an open-source relational database management system.",
+                            "reason": "The provided reference evidence does not contain any mention of PostgreSQL, its nature as open-source, or its classification as a relational database management system."
+                        }
+                    ],
+                    "supported_claims": [],
+                    "reason": "The entire AI response consists of claims about PostgreSQL that are not mentioned or supported by the provided reference evidence. Thus, it is entirely hallucinated based on the given context."
+                },
+                "completeness": {
+                    "score": 0,
+                    "confidence": 1.0,
+                    "covered_aspects": [],
+                    "missing_aspects": [],
+                    "reason": "The AI response provides information about PostgreSQL, but the provided reference evidence does not contain any information about PostgreSQL itself. Therefore, the response fails to cover any aspects from the provided evidence relevant to the question, making it completely incomplete in terms of using the specified source material. There are no specific facts about PostgreSQL within the evidence that could have been covered or missed."
+                },
+                "verdict": {
+                    "overall_score": 2.5,
+                    "verdict": "Poor",
+                    "strengths": [
+                        "The response is highly relevant to the user's question."
+                    ],
+                    "weaknesses": [
+                        "Some information is unsupported by the reference evidence.",
+                        "The response contains unsupported or hallucinated claims.",
+                        "The response omits important aspects of the expected answer."
+                    ],
+                    "recommendation": "The response should be regenerated because it contains significant issues."
+                }
+            }
+        }
+    ]
+}
