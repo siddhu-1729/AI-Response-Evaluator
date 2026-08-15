@@ -3,7 +3,7 @@ import axios from "axios";
 
 import CSVUploader from "../components/CSVUploader";
 import BatchSummary from "../components/BatchSummary";
-import BatchTable from "../components/Batchtable";
+import BatchTable from "../components/BatchTable";
 import BatchDetailsModal from "../components/BatchDetailsModal";
 
 import { useEvaluation } from "../context/EvaluationContext";

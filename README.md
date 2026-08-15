@@ -31,4 +31,89 @@ Qualitative metrics involve human judgment, assessing aspects like fluency, cohe
 **Reference-free metrics** assess outputs without requiring a reference answer, and instead focus on the intrinsic qualities of a generated text.
 They are useful for evaluating open-ended text generation tasks, where a single "correct" reference may not exist or be appropriate, such as dialogue systems, creative writing or reasoning-based outputs.
 
+# High Level Architecture : 
+                         ┌──────────────────────────┐
+                         │     React + Vite + TS    │
+                         │        Frontend          │
+                         └────────────┬─────────────┘
+                                      │ HTTP/REST
+                                      ▼
+                         ┌──────────────────────────┐
+                         │         FastAPI          │
+                         │       Backend API        │
+                         └────────────┬─────────────┘
+                                      │
+                 ┌────────────────────┼────────────────────┐
+                 │                    │                    │
+                 ▼                    ▼                    ▼
+        ┌────────────────┐   ┌─────────────────┐   ┌────────────────┐
+        │ Evaluation API │   │ Evaluation      │   │ Report         │
+        │ / Evaluations  │   │ Engine          │   │ Generation     │
+        └────────────────┘   └────────┬────────┘   └────────────────┘
+                                      │
+                                      ▼
+                         ┌──────────────────────────┐
+                         │    Evaluator Modules     │
+                         ├──────────────────────────┤
+                         │ • Relevance              │
+                         │ • Accuracy               │
+                         │ • Hallucination          │
+                         │ • Grammar                │
+                         │ • RAG / Groundedness     │
+                         │ • Other evaluators       │
+                         └────────────┬─────────────┘
+                                      │
+                    ┌─────────────────┼─────────────────┐
+                    │                 │                 │
+                    ▼                 ▼                 ▼
+             ┌────────────┐    ┌────────────┐    ┌─────────────┐
+             │ LLM / Judge│    │ Embeddings │    │ RAG         │
+             │ Models     │    │            │    │ Retrieval   │
+             └────────────┘    └────────────┘    └──────┬──────┘
+                                                       │
+                                                       ▼
+                                            ┌────────────────────┐
+                                            │Knowledge Base      │
+                                            │    (SQuAD)         │
+                                            │ Dataset Ingestion  │
+                                            │ Chunking           │
+                                            │ Embeddings         │
+                                            │ Vector Store       │
+                                            └────────────────────┘
+
+                         ┌──────────────────────────┐
+                         │      ChromaDB            │
+                         │ Evaluation Data /        │
+                         │ Results / Metadata       │
+                         └──────────────────────────┘
+
+# Work Flow of the Evaluation : 
+
+Question
+   +
+AI Response
+   +
+Optional Reference Answer / Knowledge
+          │
+          ▼
+   Evaluation Engine
+          │
+          ├──► Relevance Evaluator
+          ├──► Accuracy Evaluator
+          ├──► Hallucination Evaluator
+          ├──► Grammar Evaluator
+          └──► RAG/Groundedness Evaluator
+                    │
+                    ▼
+             Evidence + Metrics
+                    │
+                    ▼
+             Scoring / Aggregation
+                    │
+                    ▼
+             Final Evaluation
+                    │
+          ┌─────────┴─────────┐
+          ▼                   ▼
+      Dashboard          Report Export
 
