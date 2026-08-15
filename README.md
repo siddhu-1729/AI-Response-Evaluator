@@ -89,31 +89,41 @@ They are useful for evaluating open-ended text generation tasks, where a single 
 
 # Work Flow of the Evaluation : 
 
-Question
-   +
-AI Response
-   +
-Optional Reference Answer / Knowledge
-          │
-          ▼
-   Evaluation Engine
-          │
-          ├──► Relevance Evaluator
-          ├──► Accuracy Evaluator
-          ├──► Hallucination Evaluator
-          ├──► Grammar Evaluator
-          └──► RAG/Groundedness Evaluator
-                    │
-                    ▼
-             Evidence + Metrics
-                    │
-                    ▼
-             Scoring / Aggregation
-                    │
-                    ▼
-             Final Evaluation
-                    │
-          ┌─────────┴─────────┐
-          ▼                   ▼
-      Dashboard          Report Export
-
+                  Question
+                        +
+                     AI Response
+                        +
+                     Optional Reference Answer / Knowledge
+                               │
+                               ▼
+                        ┌─────────────────────┐
+                        │  Evaluation Engine  │
+                        └──────────┬──────────┘
+                                   │
+                          ┌────────┼────────┬──────────────┬────────────────────┐
+                          ▼        ▼        ▼              ▼                    ▼
+                      Relevance  Accuracy  Hallucination  Grammar       RAG / Groundedness
+                      Evaluator  Evaluator  Evaluator     Evaluator         Evaluator
+                          │        │        │              │                    │
+                          └────────┴────────┴──────────────┴────────────────────┘
+                                                   │
+                                                   ▼
+                                         ┌──────────────────┐
+                                         │ Evidence +       │
+                                         │ Metrics          │
+                                         └────────┬─────────┘
+                                                  │
+                                                  ▼
+                                         ┌──────────────────┐
+                                         │ Scoring /        │
+                                         │ Aggregation      │
+                                         └────────┬─────────┘
+                                                  │
+                                                  ▼
+                                         ┌──────────────────┐
+                                         │ Final Evaluation │
+                                         └────────┬─────────┘
+                                                  │
+                                         ┌────────┴────────┐
+                                         ▼                 ▼
+                                    Dashboard        Report Export
