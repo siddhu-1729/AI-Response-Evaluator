@@ -11,13 +11,13 @@
        
 LLM evaluation involves three fundamental pieces:
 
-# Evaluation metrics: 
+ Evaluation metrics: 
   - These metrics are used to assess a model’s performance based on predefined criteria, such as accuracy, coherence or bias.
 
-# Datasets: 
+ Datasets: 
  - This is the data against which the LLM's outputs are compared. High-quality datasets help provide an objective ground truth for evaluation.
 
-# Evaluation frameworks: 
+ Evaluation frameworks: 
   - Structured methodologies and tools help facilitate the assessment process, which ensures the results are consistent and reliable.
 
 There are numerous methods by which LLMs can be evaluated, but they can broadly be classified as either quantitative or qualitative. 
