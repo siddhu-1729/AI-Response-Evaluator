@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { downloadReport } from "../services/api";
-import { useEvaluation } from "../context/EvaluationContext";
+import {
+  useEvaluation,
+  type EvaluationRecord,
+} from "../context/EvaluationContext";
 
 import DashboardStats from "../components/DashboardStats";
 import AverageScoreChart from "../components/AverageScoreChart";
@@ -669,30 +672,30 @@ export const Dashboard = () => {
  * and safely falls back to 0 if the property
  * does not exist.
  */
-function getCompletenessScore(evaluation: any): number {
+function getCompletenessScore(evaluation: EvaluationRecord): number {
   return Number(
-    evaluation?.result?.completeness?.score ?? 0
+    evaluation.result.completeness.score ?? 0
   );
 }
 
 /**
  * Calculates the overall score for one evaluation.
  */
-function getOverallScore(evaluation: any): number {
+function getOverallScore(evaluation: EvaluationRecord): number {
   const relevance =
-    Number(evaluation?.result?.relevance?.score ?? 0);
+    Number(evaluation.result.relevance.score ?? 0);
 
   const accuracy =
-    Number(evaluation?.result?.accuracy?.score ?? 0);
+    Number(evaluation.result.accuracy.score ?? 0);
 
   const hallucination =
     Number(
-      evaluation?.result?.hallucination?.score ?? 0
+      evaluation.result.hallucination.score ?? 0
     );
 
   const completeness =
     Number(
-      evaluation?.result?.completeness?.score ?? 0
+      evaluation.result.completeness.score ?? 0
     );
 
   return (
@@ -718,9 +721,8 @@ function getOverallScore(evaluation: any): number {
  *
  * we support both.
  */
-function getVerdictLabel(evaluation: any): string {
-  const verdict =
-    evaluation?.result?.verdict;
+function getVerdictLabel(evaluation: EvaluationRecord): string {
+  const verdict = evaluation.result.verdict;
 
   if (!verdict) {
     return getOverallVerdictFromScore(
@@ -729,8 +731,7 @@ function getVerdictLabel(evaluation: any): string {
   }
 
   const value = String(
-    verdict.label ??
-      verdict.verdict ??
+    verdict.verdict ??
       verdict.recommendation ??
       ""
   ).toLowerCase();

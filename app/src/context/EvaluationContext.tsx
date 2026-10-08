@@ -141,6 +141,8 @@ export function EvaluationProvider({
    Custom Hook
 ================================ */
 
+// Hook is exported next to the provider; this is the standard React context pattern.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useEvaluation() {
 
   const context = useContext(EvaluationContext);
